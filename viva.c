@@ -49,6 +49,7 @@ int main(int argc, char* argv[]) {
     
 
     int max_rows, max_cols;
+    int last_line = 1;
     get_console_size(&max_rows, &max_cols);
 
     Cursor* usr_cursor = create_new_cursor();
@@ -59,7 +60,8 @@ int main(int argc, char* argv[]) {
     {
         ReadConsoleInput(hConsole, &inputRecord, 1, &events);
         if (inputRecord.EventType == KEY_EVENT) {
-            char c = process_key_events(inputRecord.Event.KeyEvent, usr_cursor);
+            char c = process_key_events(inputRecord.Event.KeyEvent, usr_cursor, max_rows, last_line, max_cols);
+            move_cursor(usr_cursor->row, usr_cursor->col);
             if (c != 0) {
                 printf("%c", c);
             }
