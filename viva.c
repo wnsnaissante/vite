@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
         if (inputRecord.EventType == KEY_EVENT) {
             char c = process_key_events(inputRecord.Event.KeyEvent, usr_cursor);
             if (c != 0) {
-                printf("You pressed: %c\n", c);
+                printf("%c", c);
             }
         }
     }
