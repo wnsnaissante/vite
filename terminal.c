@@ -7,17 +7,23 @@ Cursor* create_new_cursor() {
 	return cursor;
 }
 
-void calc_cursor_movement(Cursor* cursor, WORD KeyCode, int last_line) {
+void calc_cursor_movement(Cursor* cursor, WORD KeyCode, int last_line, int max_row_size, int max_col_size) {
 	switch (KeyCode) {
 	case VK_BACK:
-		if (cursor->col <= 0)
+		if (cursor->row == 1 && cursor->col == 1) {
+			break;
+		}
+		if (cursor->col <= 1)
 		{
+			cursor->row -= 1;
+			cursor->col = max_col_size;
 			break;
 		}
 		else
 		{
 			cursor->col -= 1;
 		}
+		break;
 	case VK_HOME:
 		cursor->row = 1;
 		break;
@@ -25,51 +31,52 @@ void calc_cursor_movement(Cursor* cursor, WORD KeyCode, int last_line) {
 		cursor->row = last_line;
 		break;
 	case VK_PRIOR:  // Page Up
-		if (cursor->row < 130)
+		if (cursor->row == 1)
 		{
-			cursor->row = 1;
 			break;
 		}
-		else
-		{
-			cursor->row -= 130;
-		}
+			cursor->row -= max_row_size;
+			break;
 		break;
 	case VK_NEXT:  // Page Down
-		cursor->row += 130;
+		cursor->row += max_row_size;
 		break;
 	case VK_UP:
-
+		if (cursor->row == 1)
+		{
+			break;
+		}
+		else {
+			cursor->row--;
+		}
 		break;
 	case VK_DOWN:
-
+		cursor->row++;
 		break;
 	case VK_LEFT:
+		if (cursor->row == 1 && cursor->col == 1) {
+			break;
+		}
 		if (cursor->col <= 1)
 		{
 			cursor->row -= 1;
-			cursor->col = 130;
-			printf("%d, %d\n", cursor->row, cursor->col);
+			cursor->col = max_col_size;
 			break;
 		}
 		else
 		{
 			cursor->col -= 1;
-			printf("%d, %d\n", cursor->row, cursor->col);
 		}
-
 		break;
 	case VK_RIGHT:
-		if (cursor->col >= 130)
+		if (cursor->col >= max_col_size)
 		{
 			cursor->row += 1;
-			cursor->col -= 129;
-			printf("%d, %d\n", cursor->row, cursor->col);
+			cursor->col -= max_col_size-1;
 		}
 		else
 		{
 			cursor->col += 1;
-			printf("%d, %d\n", cursor->row, cursor->col);
 		}
 		break;
 	}
@@ -92,40 +99,41 @@ void enable_raw_mode(HANDLE hConsole, DWORD* crntMode) {
 	SetConsoleMode(hConsole, mode);
 }
 
-void process_special_key_events(WORD virtualKeyCode,Cursor* cursor) {
+void process_special_key_events(WORD virtualKeyCode,Cursor* cursor, int max_row_size, int last_line, int max_col_size) {
 	switch (virtualKeyCode) {
 		case VK_BACK:
+			calc_cursor_movement(cursor, VK_BACK, last_line, max_row_size, max_col_size);
 			break;
 		case VK_HOME:
-			cursor->row = 1;
+			calc_cursor_movement(cursor, VK_HOME, last_line, max_row_size, max_col_size);
 			break;
 		case VK_END:
-
+			calc_cursor_movement(cursor, VK_END, last_line, max_row_size, max_col_size);
 			break;
 		case VK_PRIOR:  // Page Up
-			
+			calc_cursor_movement(cursor, VK_PRIOR, last_line, max_row_size, max_col_size);
 			break;
 		case VK_NEXT:  // Page Down
-			
+			calc_cursor_movement(cursor, VK_NEXT, last_line, max_row_size, max_col_size);
 			break;
 		case VK_UP:
-			calc_cursor_movement(cursor, VK_UP, 130);
+			calc_cursor_movement(cursor, VK_UP, last_line, max_row_size, max_col_size);
 			break;
 		case VK_DOWN:
-			calc_cursor_movement(cursor, VK_DOWN, 130);
+			calc_cursor_movement(cursor, VK_DOWN, last_line, max_row_size, max_col_size);
 			break;
 		case VK_LEFT:
-			calc_cursor_movement(cursor, VK_LEFT, 130);
+			calc_cursor_movement(cursor, VK_LEFT, last_line, max_row_size, max_col_size);
 			break;
 		case VK_RIGHT:
-			calc_cursor_movement(cursor, VK_RIGHT, 130);
+			calc_cursor_movement(cursor, VK_RIGHT, last_line, max_row_size, max_col_size);
 			break;
 		default:
 			break;
 	}
 }
 
-char process_key_events(KEY_EVENT_RECORD keyEvent,Cursor* cursor) {
+char process_key_events(KEY_EVENT_RECORD keyEvent,Cursor* cursor, int max_row_size, int last_line, int max_col_size) {
 	if (keyEvent.bKeyDown) {
 		switch (keyEvent.wVirtualKeyCode) {
 		case VK_BACK:
@@ -137,7 +145,7 @@ char process_key_events(KEY_EVENT_RECORD keyEvent,Cursor* cursor) {
 		case VK_DOWN:  // Arrow Down
 		case VK_LEFT:  // Arrow Left
 		case VK_RIGHT: // Arrow Right
-			process_special_key_events(keyEvent.wVirtualKeyCode, cursor);
+			process_special_key_events(keyEvent.wVirtualKeyCode, cursor, max_row_size, last_line, max_col_size);
 			return 0;  // 
 		default:
 			if (keyEvent.uChar.AsciiChar != 0) {
