@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "terminal.h"
+#include "gap_buffer.h"
 
 
 int main(int argc, char* argv[]) {
@@ -47,6 +48,8 @@ int main(int argc, char* argv[]) {
         strcpy(file_extension, "no tf");
     }
     
+	GapBuffer* gap_buffer = create_gap_buffer(1024);
+    printf("%d", gap_buffer->size_of_gap);
 
     int max_rows, max_cols;
     int last_line = 1;
