@@ -1,4 +1,5 @@
 #include "terminal.h"
+#include "gap_buffer.h"
 
 Cursor* create_new_cursor() {
 	Cursor* cursor = (Cursor*)malloc(sizeof(Cursor));
@@ -35,8 +36,7 @@ void calc_cursor_movement(Cursor* cursor, WORD KeyCode, int last_line, int max_r
 		{
 			break;
 		}
-			cursor->row -= max_row_size;
-			break;
+		cursor->row -= max_row_size;
 		break;
 	case VK_NEXT:  // Page Down
 		cursor->row += max_row_size;
@@ -78,6 +78,14 @@ void calc_cursor_movement(Cursor* cursor, WORD KeyCode, int last_line, int max_r
 		{
 			cursor->col += 1;
 		}
+		break;
+	case VK_SPACE:
+		if (cursor->col >= max_col_size)
+		{
+			cursor->col -= max_col_size - 1;
+			cursor->row += 1;
+		}
+		cursor->col += 1;
 		break;
 	}
 }
@@ -128,6 +136,9 @@ void process_special_key_events(WORD virtualKeyCode,Cursor* cursor, int max_row_
 		case VK_RIGHT:
 			calc_cursor_movement(cursor, VK_RIGHT, last_line, max_row_size, max_col_size);
 			break;
+		case VK_SPACE:
+			calc_cursor_movement(cursor, VK_SPACE, last_line, max_row_size, max_col_size);
+			break;
 		default:
 			break;
 	}
@@ -145,6 +156,7 @@ char process_key_events(KEY_EVENT_RECORD keyEvent,Cursor* cursor, int max_row_si
 		case VK_DOWN:  // Arrow Down
 		case VK_LEFT:  // Arrow Left
 		case VK_RIGHT: // Arrow Right
+		case VK_SPACE:
 			process_special_key_events(keyEvent.wVirtualKeyCode, cursor, max_row_size, last_line, max_col_size);
 			return 0;  // 
 		default:
