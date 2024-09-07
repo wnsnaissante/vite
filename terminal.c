@@ -7,87 +7,10 @@ Cursor* create_new_cursor() {
 	return cursor;
 }
 
-void calc_cursor_movement(Cursor* cursor, WORD KeyCode, int last_line, int max_row_size, int max_col_size) {
-	switch (KeyCode) {
-	case VK_BACK:
-		if (cursor->row == 1 && cursor->col == 1) {
-			printf(" ");
-			break;
-		}
-		if (cursor->col <= 1)
-		{
-			printf(" ");
-			cursor->row -= 1;
-			cursor->col = max_col_size;
-			break;
-		} else {
-			cursor->col -= 1;
-			printf(" ");
-		}
-		break;
-	case VK_HOME:
-		cursor->row = 1;
-		break;
-	case VK_END:
-		cursor->row = last_line;
-		break;
-	case VK_PRIOR:  // Page Up
-		if (cursor->row == 1)
-		{
-			break;
-		}
-		cursor->row -= max_row_size;
-		break;
-	case VK_NEXT:  // Page Down
-		cursor->row += max_row_size;
-		break;
-	case VK_UP:
-		if (cursor->row == 1)
-		{
-			break;
-		}
-		else {
-			cursor->row--;
-		}
-		break;
-	case VK_DOWN:
-		cursor->row++;
-		break;
-	case VK_LEFT:
-		if (cursor->row == 1 && cursor->col == 1) {
-			break;
-		}
-		if (cursor->col <= 1)
-		{
-			cursor->row -= 1;
-			cursor->col = max_col_size;
-			break;
-		}
-		else
-		{
-			cursor->col -= 1;
-		}
-		break;
-	case VK_RIGHT:
-		if (cursor->col >= max_col_size)
-		{
-			cursor->row += 1;
-			cursor->col -= max_col_size-1;
-		}
-		else
-		{
-			cursor->col += 1;
-		}
-		break;
-	case VK_SPACE:
-		if (cursor->col >= max_col_size)
-		{
-			cursor->col -= max_col_size - 1;
-			cursor->row += 1;
-		}
-		cursor->col += 1;
-		break;
-	}
+// Flatten the cursor's 2-dimensional position to a 1-dimensional position
+int flatten_cursor_position(Cursor* cursor, int terminal_width) {
+	int index = (cursor->row - 1) * terminal_width + (cursor->col - 1);
+	return index;
 }
 
 #ifdef _WIN32
@@ -107,67 +30,52 @@ void enable_raw_mode(HANDLE hConsole, DWORD* crntMode) {
 	SetConsoleMode(hConsole, mode);
 }
 
-void process_special_key_events(WORD virtualKeyCode,Cursor* cursor, int max_row_size, int last_line, int max_col_size) {
-	switch (virtualKeyCode) {
-		case VK_BACK:
-			calc_cursor_movement(cursor, VK_BACK, last_line, max_row_size, max_col_size);
-			break;
-		case VK_HOME:
-			calc_cursor_movement(cursor, VK_HOME, last_line, max_row_size, max_col_size);
-			break;
-		case VK_END:
-			calc_cursor_movement(cursor, VK_END, last_line, max_row_size, max_col_size);
-			break;
-		case VK_PRIOR:  // Page Up
-			calc_cursor_movement(cursor, VK_PRIOR, last_line, max_row_size, max_col_size);
-			break;
-		case VK_NEXT:  // Page Down
-			calc_cursor_movement(cursor, VK_NEXT, last_line, max_row_size, max_col_size);
-			break;
-		case VK_UP:
-			calc_cursor_movement(cursor, VK_UP, last_line, max_row_size, max_col_size);
-			break;
-		case VK_DOWN:
-			calc_cursor_movement(cursor, VK_DOWN, last_line, max_row_size, max_col_size);
-			break;
-		case VK_LEFT:
-			calc_cursor_movement(cursor, VK_LEFT, last_line, max_row_size, max_col_size);
-			break;
-		case VK_RIGHT:
-			calc_cursor_movement(cursor, VK_RIGHT, last_line, max_row_size, max_col_size);
-			break;
-		case VK_SPACE:
-			calc_cursor_movement(cursor, VK_SPACE, last_line, max_row_size, max_col_size);
-			break;
-		default:
-			break;
-	}
+int is_ctrl_pressed(DWORD controlKeyState) {
+	return (controlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
 }
 
-char process_key_events(KEY_EVENT_RECORD keyEvent,Cursor* cursor, int max_row_size, int last_line, int max_col_size) {
-	if (keyEvent.bKeyDown) {
-		switch (keyEvent.wVirtualKeyCode) {
-		case VK_BACK:
-		case VK_HOME:
-		case VK_END:
-		case VK_PRIOR:  // Page Up
-		case VK_NEXT:  // Page Down
-		case VK_UP:    // Arrow Up
-		case VK_DOWN:  // Arrow Down
-		case VK_LEFT:  // Arrow Left
-		case VK_RIGHT: // Arrow Right
-		case VK_SPACE:
-			process_special_key_events(keyEvent.wVirtualKeyCode, cursor, max_row_size, last_line, max_col_size);
-			return 0;  // 
-		default:
-			if (keyEvent.uChar.AsciiChar != 0) {
-				return keyEvent.uChar.AsciiChar;
+void handle_key_input(INPUT_RECORD inputRecord, Cursor* cursor, GapBuffer* gap_buffer, int terminal_width, int last_line_no) {
+	int pos = flatten_cursor_position(cursor, terminal_width);
+	if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
+		KEY_EVENT_RECORD keyEvent = inputRecord.Event.KeyEvent;
+
+		if (keyEvent.uChar.AsciiChar != 0) {
+			if (pos < gap_buffer->size)
+			{
+				gap_buffer = sync_cursor_pos_with_buffer_size(gap_buffer, pos);
 			}
-			break;
+			insert_char(gap_buffer, keyEvent.uChar.AsciiChar, pos);
+			return;
+		}
+		
+		WORD keyCode = inputRecord.Event.KeyEvent.wVirtualKeyCode;
+		switch (keyCode) {
+			case VK_BACK:
+				delete_char(gap_buffer, pos);
+				break;
+			case VK_HOME:
+				printf("%s\n%d %d", gap_buffer->char_buffer,gap_buffer->gap_start,gap_buffer->gap_end);
+				break;
+			case VK_END:
+			case VK_PRIOR:  // Page Up
+			case VK_NEXT:  // Page Down
+			case VK_UP:    // Arrow Up
+			case VK_DOWN:  // Arrow Down
+			case VK_LEFT:  // Arrow Left
+			case VK_RIGHT: // Arrow Right
+			case VK_SPACE:
+				break;
 		}
 	}
-	return 0;
+	return;
 }
+
+
+
+
+
+
+
 #else
 void get_console_size(int* rows, int* cols) {
 	struct winsize console_size;
