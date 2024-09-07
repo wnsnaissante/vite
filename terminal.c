@@ -1,5 +1,4 @@
 #include "terminal.h"
-#include "gap_buffer.h"
 
 Cursor* create_new_cursor() {
 	Cursor* cursor = (Cursor*)malloc(sizeof(Cursor));
@@ -12,17 +11,18 @@ void calc_cursor_movement(Cursor* cursor, WORD KeyCode, int last_line, int max_r
 	switch (KeyCode) {
 	case VK_BACK:
 		if (cursor->row == 1 && cursor->col == 1) {
+			printf(" ");
 			break;
 		}
 		if (cursor->col <= 1)
 		{
+			printf(" ");
 			cursor->row -= 1;
 			cursor->col = max_col_size;
 			break;
-		}
-		else
-		{
+		} else {
 			cursor->col -= 1;
+			printf(" ");
 		}
 		break;
 	case VK_HOME:

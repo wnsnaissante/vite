@@ -20,8 +20,6 @@
 */
 
 #define _CRT_SECURE_NO_WARNINGS
-#include <stdlib.h>
-#include <string.h>
 #include "terminal.h"
 #include "gap_buffer.h"
 
@@ -47,14 +45,12 @@ int main(int argc, char* argv[]) {
         strcpy(file_name, "No Name");
         strcpy(file_extension, "no tf");
     }
-    
-	GapBuffer* gap_buffer = create_gap_buffer(1024);
-    printf("%d", gap_buffer->size_of_gap);
 
     int max_rows, max_cols;
     int last_line = 1;
     get_console_size(&max_rows, &max_cols);
 
+    GapBuffer* gap_buf = create_gap_buffer(1024);
     Cursor* usr_cursor = create_new_cursor();
 
     INPUT_RECORD inputRecord;
