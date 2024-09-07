@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
     int last_line = 1;
     get_console_size(&terminal_height, &terminal_width);
 
-    GapBuffer* gap_buf = create_gap_buffer(4); // About 5MB zz 5242880
+    GapBuffer* gap_buf = create_gap_buffer(5242880); // About 5MB zz 5242880
 
     Cursor* usr_cursor = create_new_cursor();
 
