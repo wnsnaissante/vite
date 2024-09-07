@@ -28,6 +28,8 @@ int main(int argc, char* argv[]) {
 #ifdef _WIN32   // Init Terminal Raw Mode
     HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
     DWORD crntMode;
+    INPUT_RECORD inputRecord;
+    DWORD events;
     enable_raw_mode(hConsole, &crntMode);
 #else
     struct termios orig_termios;
@@ -46,27 +48,22 @@ int main(int argc, char* argv[]) {
         strcpy(file_extension, "no tf");
     }
 
-    int max_rows, max_cols;
+    int terminal_height, terminal_width;
     int last_line = 1;
-    get_console_size(&max_rows, &max_cols);
+    get_console_size(&terminal_height, &terminal_width);
 
-    GapBuffer* gap_buf = create_gap_buffer(1024);
+    GapBuffer* gap_buf = create_gap_buffer(4); // About 5MB zz 5242880
+
     Cursor* usr_cursor = create_new_cursor();
 
-    INPUT_RECORD inputRecord;
-    DWORD events;
+    sync_cursor_pos_with_buffer_size(gap_buf, flatten_cursor_position(usr_cursor, terminal_width));
+    printf("%d %d %d \n", gap_buf->size,gap_buf->gap_start, gap_buf->gap_end);
     while (1)
     {
         ReadConsoleInput(hConsole, &inputRecord, 1, &events);
         if (inputRecord.EventType == KEY_EVENT) {
-            char c = process_key_events(inputRecord.Event.KeyEvent, usr_cursor, max_rows, last_line, max_cols);
-            move_cursor(usr_cursor->row, usr_cursor->col);
-            if (c != 0) {
-                printf("%c", c);
-            }
+            handle_key_input(inputRecord, usr_cursor, gap_buf, terminal_width, 1);
         }
     }
-    
-    
     return 0;
 }
