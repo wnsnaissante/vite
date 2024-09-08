@@ -24,6 +24,7 @@
 #include "gap_buffer.h"
 
 
+
 int main(int argc, char* argv[]) {
 #ifdef _WIN32   // Init Terminal Raw Mode
     HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
@@ -51,19 +52,14 @@ int main(int argc, char* argv[]) {
     int terminal_height, terminal_width;
     int last_line = 1;
     get_console_size(&terminal_height, &terminal_width);
-
-    GapBuffer* gap_buf = create_gap_buffer(5242880); // About 5MB zz 5242880
-
-    Cursor* usr_cursor = create_new_cursor();
-
-    sync_cursor_pos_with_buffer_size(gap_buf, flatten_cursor_position(usr_cursor, terminal_width));
-    printf("%d %d %d \n", gap_buf->size,gap_buf->gap_start, gap_buf->gap_end);
+    clear_screen();
+    Cursor* buf_cursor = create_new_cursor();
+    GapBuffer* gap_buffer = create_gap_buffer(4);
     while (1)
     {
-        ReadConsoleInput(hConsole, &inputRecord, 1, &events);
-        if (inputRecord.EventType == KEY_EVENT) {
-            handle_key_input(inputRecord, usr_cursor, gap_buf, terminal_width, 1);
-        }
+        handle_key(buf_cursor, gap_buffer,terminal_height, terminal_width);
+        print_gap_buffer(gap_buffer);
+        move_cursor(buf_cursor->row, buf_cursor->col);
     }
     return 0;
 }
