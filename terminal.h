@@ -11,10 +11,10 @@ typedef struct {
 
 #ifdef _WIN32
 #include <windows.h>
+#include <conio.h>
 void get_console_size(int* height, int* width);
 void enable_raw_mode(HANDLE hConsole, DWORD* crntMode);
-void handle_key_input(INPUT_RECORD inputRecord, Cursor* cursor, GapBuffer* gap_buffer, int terminal_width, int last_line_no);
-
+void handle_key(Cursor* cursor, GapBuffer* gap_buffer, int terminal_height, int terminal_width);
 #else
 #include <termios.h>
 #include <unistd.h>
@@ -25,7 +25,7 @@ void enable_raw_mode(struct termios* orig_termios);
 
 Cursor* create_new_cursor();
 void move_cursor(int row, int col);
-int flatten_cursor_position(Cursor* cursor, int max_cols);
+int flatten_cursor_position(Cursor* cursor, int terminal_width);
 void set_background_color(int color);
 void set_text_color(int color);
 void reset_colors();

@@ -30,51 +30,129 @@ void enable_raw_mode(HANDLE hConsole, DWORD* crntMode) {
 	SetConsoleMode(hConsole, mode);
 }
 
-int is_ctrl_pressed(DWORD controlKeyState) {
-	return (controlKeyState & (LEFT_CTRL_PRESSED | RIGHT_CTRL_PRESSED)) != 0;
-}
 
-void handle_key_input(INPUT_RECORD inputRecord, Cursor* cursor, GapBuffer* gap_buffer, int terminal_width, int last_line_no) {
-	int pos = flatten_cursor_position(cursor, terminal_width);
-	if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
-		KEY_EVENT_RECORD keyEvent = inputRecord.Event.KeyEvent;
+void handle_key(Cursor* cursor, GapBuffer* gap_buffer, int terminal_height, int terminal_width) {
+	int key = _getch();
 
-		if (keyEvent.uChar.AsciiChar != 0) {
-			if (pos < gap_buffer->size)
+	switch (key) {
+	case 0xE0:
+		key = _getch();
+		switch (key) {
+		case 0x48:	// Up arrow
+			if (cursor->row > 1)
 			{
-				gap_buffer = sync_cursor_pos_with_buffer_size(gap_buffer, pos);
+				cursor->row -= 1;
+				break;
 			}
-			insert_char(gap_buffer, keyEvent.uChar.AsciiChar, pos);
-			return;
+			break;
+		case 0x50: // Down arrow
+			cursor->row++;
+			if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
+			{
+				gap_buffer = resize_gap_buffer(gap_buffer);
+			}
+			break;
+		case 0x4B: // Left arrow
+			if (cursor->col == 1)
+			{
+				if (cursor->row <= 1)
+				{
+					break;
+				}
+				cursor->col = terminal_width;
+				cursor->row--;
+			}
+			else cursor->col--;
+			break;
+		case 0x4D: // Right arrow
+			if (cursor->col < terminal_width)
+			{
+				cursor->col++;
+			}
+			else {
+				cursor->col -= terminal_width - 1;
+				cursor->row++;
+			}
+
+			if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
+			{
+				gap_buffer = resize_gap_buffer(gap_buffer);
+			}
+			break;
+		case 0x49: // Page up 
+			if (cursor->row < terminal_height)
+			{
+				cursor->row = 1;
+			}
+			else cursor->row -= terminal_height - 1;
+			break;
+		case 0x51: // Page down
+			cursor->row += terminal_height;
+			if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
+			{
+				gap_buffer = resize_gap_buffer(gap_buffer);
+			}
+			break;
+		case 0x47: printf("HOME key pressed\n"); break;
+		case 0x4F: printf("END key pressed\n"); break;
 		}
-		
-		WORD keyCode = inputRecord.Event.KeyEvent.wVirtualKeyCode;
-		switch (keyCode) {
-			case VK_BACK:
-				delete_char(gap_buffer, pos);
+		break;
+	case 6: // ctrl + f | FIND
+		break;
+	case 17: // ctrl + q | EXIT
+		exit(0);
+		break;
+	case 19: // ctrl + s | SAVE
+		break;
+	case 8: // Backspace
+		delete_char(gap_buffer, flatten_cursor_position(cursor, terminal_width));
+		if (cursor->col == 1)
+		{
+			if (cursor->row <= 1)
+			{
 				break;
-			case VK_HOME:
-				printf("%s\n%d %d", gap_buffer->char_buffer,gap_buffer->gap_start,gap_buffer->gap_end);
-				break;
-			case VK_END:
-			case VK_PRIOR:  // Page Up
-			case VK_NEXT:  // Page Down
-			case VK_UP:    // Arrow Up
-			case VK_DOWN:  // Arrow Down
-			case VK_LEFT:  // Arrow Left
-			case VK_RIGHT: // Arrow Right
-			case VK_SPACE:
-				break;
+			}
+			cursor->col = terminal_width;
+			cursor->row--;
 		}
+		else cursor->col--;
+		break;
+	case 3:
+		clear_screen();
+		printf("%s", gap_buffer->char_buffer);
+		break;
+	case 13:
+		insert_char(gap_buffer, (char)10, flatten_cursor_position(cursor, terminal_width));
+		if (cursor->col < terminal_width)
+		{
+			cursor->col++;
+		}
+		else {
+			cursor->col -= terminal_width - 1;
+			cursor->row++;
+		}
+		if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
+		{
+			gap_buffer = resize_gap_buffer(gap_buffer);
+		}
+		break;
+	default: // Regular Keys
+		insert_char(gap_buffer, (char)key, flatten_cursor_position(cursor, terminal_width));
+		if (cursor->col < terminal_width)
+		{
+			cursor->col++;
+		}
+		else {
+			cursor->col -= terminal_width - 1;
+			cursor->row++;
+		}
+		if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
+		{
+			gap_buffer = resize_gap_buffer(gap_buffer);
+		}
+		break;
 	}
-	return;
 }
-
-
-
-
-
-
 
 #else
 void get_console_size(int* rows, int* cols) {
@@ -114,3 +192,20 @@ void clear_screen() {
 	printf("\033[2J");
 	printf("\033[H");
 }
+
+void draw_screen() {
+	clear_screen();
+}
+
+void draw_context() {
+
+}
+
+void draw_status_bar() { 
+
+}
+
+void draw_message_bar() {
+
+}
+
