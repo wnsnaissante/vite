@@ -14,7 +14,7 @@ typedef struct {
 #include <conio.h>
 void get_console_size(int* height, int* width);
 void enable_raw_mode(HANDLE hConsole, DWORD* crntMode);
-void handle_key(Cursor* cursor, GapBuffer* gap_buffer, int terminal_height, int terminal_width);
+void handle_key(Cursor* buf_cursor, Cursor* scr_cursor, GapBuffer* gap_buffer, int terminal_height, int terminal_width);
 #else
 #include <termios.h>
 #include <unistd.h>

@@ -14,7 +14,7 @@ void print_gap_buffer(GapBuffer* gap_buffer) {
     clear_screen();
     for (int i = 0; i < gap_buffer->size; i++)
     {
-        if (gap_buffer->char_buffer[i] == 0) continue;
+        if (gap_buffer->char_buffer[i] == 0) printf("_");
         else
         {
             printf("%c", gap_buffer->char_buffer[i]);
@@ -43,10 +43,7 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
 
     char* new_buffer = (char*)calloc(new_gap_buffer_size, sizeof(char));
     memcpy(new_buffer, gap_buffer->char_buffer, before_realloc_size);
-    gap_buffer->gap_end = new_gap_buffer_size - 1;
-    if (gap_buffer->gap_end >= new_gap_buffer_size) {
-        gap_buffer->gap_end = new_gap_buffer_size - 1;
-    }
+    gap_buffer->gap_end = before_realloc_size - 1;
     free(gap_buffer->char_buffer);
     gap_buffer->char_buffer = new_buffer;
     gap_buffer->size = new_gap_buffer_size;
@@ -74,6 +71,7 @@ void move_gap_right(GapBuffer* gap_buffer, int position) {
     if (position < gap_buffer->gap_start || position > gap_buffer->gap_end) {
         return;
     }
+
     while (position > gap_buffer->gap_start) {
         if (gap_buffer->gap_end >= gap_buffer->size - 1) {
             gap_buffer = resize_gap_buffer(gap_buffer);
@@ -121,3 +119,4 @@ void delete_char(GapBuffer* gap_buffer, int position) {
         memset(&gap_buffer->char_buffer[gap_buffer->gap_start], (char)0, sizeof(char) * 1);
     }
 }
+

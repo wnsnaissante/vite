@@ -31,128 +31,67 @@ void enable_raw_mode(HANDLE hConsole, DWORD* crntMode) {
 }
 
 
-void handle_key(Cursor* cursor, GapBuffer* gap_buffer, int terminal_height, int terminal_width) {
+void handle_key(Cursor* buf_cursor, Cursor* scr_cursor, GapBuffer* gap_buffer, int terminal_height, int terminal_width) {
 	int key = _getch();
-
 	switch (key) {
-	case 0xE0:
-		key = _getch();
-		switch (key) {
-		case 0x48:	// Up arrow
-			if (cursor->row > 1)
-			{
-				cursor->row -= 1;
+		case 0xE0:
+			key = _getch();
+			switch (key) {
+			case 0x48:	// Up arrow
 				break;
+			case 0x50: // Down arrow
+				break;
+			case 0x4B: // Left arrow
+				break;
+			case 0x4D: // Right arrow
+				break;
+			case 0x49: // Page up 
+				break;
+			case 0x51: // Page down
+				break;
+			case 0x47: printf("HOME key pressed\n"); break;
+			case 0x4F: printf("END key pressed\n"); break;
 			}
+		case 6: // ctrl + f | FIND
 			break;
-		case 0x50: // Down arrow
-			cursor->row++;
-			if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
-			{
-				gap_buffer = resize_gap_buffer(gap_buffer);
-			}
+		case 17: // ctrl + q | EXIT
+			exit(0);
 			break;
-		case 0x4B: // Left arrow
-			if (cursor->col == 1)
+		case 19: // ctrl + s | SAVE
+			break;
+		case 8: // Backspace
+			delete_char(gap_buffer, flatten_cursor_position(buf_cursor, terminal_width));
+			if (buf_cursor->col == 1)
 			{
-				if (cursor->row <= 1)
+				if (buf_cursor->row <= 1)
 				{
 					break;
 				}
-				cursor->col = terminal_width;
-				cursor->row--;
+				buf_cursor->col = terminal_width;
+				buf_cursor->row--;
 			}
-			else cursor->col--;
+			else buf_cursor->col--;
 			break;
-		case 0x4D: // Right arrow
-			if (cursor->col < terminal_width)
+		case 13: // Enter key
+			break;
+		default: // Regular Keys
+			insert_char(gap_buffer, (char)key, flatten_cursor_position(buf_cursor, terminal_width));
+			if (buf_cursor->col < terminal_width)
 			{
-				cursor->col++;
+				buf_cursor->col++;
 			}
 			else {
-				cursor->col -= terminal_width - 1;
-				cursor->row++;
+				buf_cursor->col -= terminal_width - 1;
+				buf_cursor->row++;
 			}
-
-			if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
+			if (flatten_cursor_position(buf_cursor, terminal_width) >= gap_buffer->size)
 			{
 				gap_buffer = resize_gap_buffer(gap_buffer);
 			}
 			break;
-		case 0x49: // Page up 
-			if (cursor->row < terminal_height)
-			{
-				cursor->row = 1;
-			}
-			else cursor->row -= terminal_height - 1;
-			break;
-		case 0x51: // Page down
-			cursor->row += terminal_height;
-			if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
-			{
-				gap_buffer = resize_gap_buffer(gap_buffer);
-			}
-			break;
-		case 0x47: printf("HOME key pressed\n"); break;
-		case 0x4F: printf("END key pressed\n"); break;
-		}
-		break;
-	case 6: // ctrl + f | FIND
-		break;
-	case 17: // ctrl + q | EXIT
-		exit(0);
-		break;
-	case 19: // ctrl + s | SAVE
-		break;
-	case 8: // Backspace
-		delete_char(gap_buffer, flatten_cursor_position(cursor, terminal_width));
-		if (cursor->col == 1)
-		{
-			if (cursor->row <= 1)
-			{
-				break;
-			}
-			cursor->col = terminal_width;
-			cursor->row--;
-		}
-		else cursor->col--;
-		break;
-	case 3:
-		clear_screen();
-		printf("%s", gap_buffer->char_buffer);
-		break;
-	case 13:
-		insert_char(gap_buffer, (char)10, flatten_cursor_position(cursor, terminal_width));
-		if (cursor->col < terminal_width)
-		{
-			cursor->col++;
-		}
-		else {
-			cursor->col -= terminal_width - 1;
-			cursor->row++;
-		}
-		if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
-		{
-			gap_buffer = resize_gap_buffer(gap_buffer);
-		}
-		break;
-	default: // Regular Keys
-		insert_char(gap_buffer, (char)key, flatten_cursor_position(cursor, terminal_width));
-		if (cursor->col < terminal_width)
-		{
-			cursor->col++;
-		}
-		else {
-			cursor->col -= terminal_width - 1;
-			cursor->row++;
-		}
-		if (flatten_cursor_position(cursor, terminal_width) >= gap_buffer->size)
-		{
-			gap_buffer = resize_gap_buffer(gap_buffer);
-		}
-		break;
 	}
 }
+
 
 #else
 void get_console_size(int* rows, int* cols) {
@@ -170,6 +109,9 @@ void enable_raw_mode(struct termios* orig_termios) {
 }
 #endif
 
+void calc_cursor_pos(GapBuffer* gap_buffer) {
+
+}
 
 
 void move_cursor(int row, int col) {

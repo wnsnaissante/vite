@@ -18,4 +18,5 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer);
 GapBuffer* sync_buffer_size_with_cursor_pos(GapBuffer* gap_buffer, int pos);
 void insert_char(GapBuffer* gap_buffer, char c, int position);
 void delete_char(GapBuffer* gap_buffer, int position);
+
 #endif

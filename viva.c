@@ -54,12 +54,12 @@ int main(int argc, char* argv[]) {
     get_console_size(&terminal_height, &terminal_width);
     clear_screen();
     Cursor* buf_cursor = create_new_cursor();
+    Cursor* scr_cursor = create_new_cursor();
     GapBuffer* gap_buffer = create_gap_buffer(4);
     while (1)
     {
-        handle_key(buf_cursor, gap_buffer,terminal_height, terminal_width);
+        handle_key(scr_cursor, buf_cursor, gap_buffer,terminal_height, terminal_width);
         print_gap_buffer(gap_buffer);
-        move_cursor(buf_cursor->row, buf_cursor->col);
     }
     return 0;
 }
