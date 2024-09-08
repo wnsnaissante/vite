@@ -10,39 +10,26 @@ GapBuffer* create_gap_buffer(int size) {
 	return gap_buffer;
 }
 
-GapBuffer* sync_cursor_pos_with_buffer_size(GapBuffer* gap_buffer, int pos) {
-    GapBuffer* temp = 0;
-    if (pos > gap_buffer->size)
+void print_gap_buffer(GapBuffer* gap_buffer) {
+    clear_screen();
+    for (int i = 0; i < gap_buffer->size; i++)
     {
-        while (gap_buffer->size < pos) {
-            temp = resize_gap_buffer(gap_buffer);
+        if (gap_buffer->char_buffer[i] == 0) continue;
+        else
+        {
+            printf("%c", gap_buffer->char_buffer[i]);
         }
     }
-    else
-    {
-        temp = gap_buffer;
-    }
-    return temp;
 }
 
-void insert_char(GapBuffer* gap_buffer, char c, int pos) {
-    if (gap_buffer->gap_start == gap_buffer->gap_end)
-    {
-        resize_gap_buffer(gap_buffer);
+GapBuffer* sync_buffer_size_with_cursor_pos(GapBuffer* gap_buffer, int pos) {
+    if (pos > gap_buffer->size) {
+        while (gap_buffer->size < pos) {
+            gap_buffer = resize_gap_buffer(gap_buffer);
+        }
     }
-
-    gap_buffer->char_buffer[gap_buffer->gap_start] = c;
-    gap_buffer->gap_start++;
+    return gap_buffer;
 }
-
-void delete_char(GapBuffer* gap_buffer, int pos) {
-    if (gap_buffer->gap_start == gap_buffer->gap_end) {
-        resize_gap_buffer(gap_buffer);
-    }
-    gap_buffer->char_buffer[pos] = 0;
-    gap_buffer->gap_start--;
-}
-
 GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
     size_t before_realloc_size = gap_buffer->size;
     size_t additional_size;
@@ -57,9 +44,80 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
     char* new_buffer = (char*)calloc(new_gap_buffer_size, sizeof(char));
     memcpy(new_buffer, gap_buffer->char_buffer, before_realloc_size);
     gap_buffer->gap_end = new_gap_buffer_size - 1;
+    if (gap_buffer->gap_end >= new_gap_buffer_size) {
+        gap_buffer->gap_end = new_gap_buffer_size - 1;
+    }
     free(gap_buffer->char_buffer);
     gap_buffer->char_buffer = new_buffer;
     gap_buffer->size = new_gap_buffer_size;
 
     return gap_buffer;
+}
+
+void move_gap_left(GapBuffer* gap_buffer, int position) {
+    if (position < gap_buffer->gap_start || position > gap_buffer->gap_end) {
+        return;
+    }
+    while (position < gap_buffer->gap_start)
+    {
+        if (gap_buffer->gap_start == 0) {
+            break;  
+        }
+        gap_buffer->gap_start--;
+        gap_buffer->gap_end--;
+        memset(&gap_buffer->char_buffer[gap_buffer->gap_end + 1], gap_buffer->char_buffer[gap_buffer->gap_start],1*sizeof(char));
+        memset(&gap_buffer->char_buffer[gap_buffer->gap_start], 0, 1 * sizeof(char));
+    }
+}
+
+void move_gap_right(GapBuffer* gap_buffer, int position) {
+    if (position < gap_buffer->gap_start || position > gap_buffer->gap_end) {
+        return;
+    }
+    while (position > gap_buffer->gap_start) {
+        if (gap_buffer->gap_end >= gap_buffer->size - 1) {
+            gap_buffer = resize_gap_buffer(gap_buffer);
+        }
+        gap_buffer->gap_start++;
+        gap_buffer->gap_end++;
+
+        memset(&gap_buffer->char_buffer[gap_buffer->gap_start - 1], gap_buffer->char_buffer[gap_buffer->gap_end], 1 * sizeof(char));
+        memset(&gap_buffer->char_buffer[gap_buffer->gap_end], 0, 1 * sizeof(char));
+    }
+}
+
+void move_buf_cursor(GapBuffer* gap_buffer, int position) {
+    if (position < gap_buffer->gap_start) {
+        move_gap_left(gap_buffer, position);
+    }
+    else
+    {
+        move_gap_right(gap_buffer, position);
+    }
+}
+
+void insert_char(GapBuffer* gap_buffer, char c, int position) {
+    if (position != gap_buffer->gap_start) {
+        move_buf_cursor(gap_buffer, position);
+    }
+
+    if (gap_buffer->gap_start == gap_buffer->gap_end) {
+        gap_buffer = resize_gap_buffer(gap_buffer);
+    }
+
+    if (gap_buffer->gap_start < gap_buffer->size) {
+        memset(&gap_buffer->char_buffer[gap_buffer->gap_start], c, sizeof(char) * 1);
+        gap_buffer->gap_start++;
+    }
+}
+
+void delete_char(GapBuffer* gap_buffer, int position) {
+    if (position != gap_buffer->gap_start) {
+        move_buf_cursor(gap_buffer, position);
+    }
+
+    if (gap_buffer->gap_start > 0) {
+        gap_buffer->gap_start--; 
+        memset(&gap_buffer->char_buffer[gap_buffer->gap_start], (char)0, sizeof(char) * 1);
+    }
 }

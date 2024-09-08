@@ -13,8 +13,9 @@ typedef struct {
 }GapBuffer;
 
 GapBuffer* create_gap_buffer(int size);
+void print_gap_buffer(GapBuffer* gap_buffer);
 GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer);
-GapBuffer* sync_cursor_pos_with_buffer_size(GapBuffer* gap_buffer, int pos);
-void insert_char(GapBuffer* gap_buffer, char c, int pos);
-void delete_char(GapBuffer* gap_buffer, int pos);
+GapBuffer* sync_buffer_size_with_cursor_pos(GapBuffer* gap_buffer, int pos);
+void insert_char(GapBuffer* gap_buffer, char c, int position);
+void delete_char(GapBuffer* gap_buffer, int position);
 #endif
