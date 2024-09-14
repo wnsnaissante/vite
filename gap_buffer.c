@@ -43,7 +43,7 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
 
     char* new_buffer = (char*)calloc(new_gap_buffer_size, sizeof(char));
     memcpy(new_buffer, gap_buffer->char_buffer, before_realloc_size);
-    gap_buffer->gap_end = before_realloc_size - 1;
+    gap_buffer->gap_end = new_gap_buffer_size;
     free(gap_buffer->char_buffer);
     gap_buffer->char_buffer = new_buffer;
     gap_buffer->size = new_gap_buffer_size;
