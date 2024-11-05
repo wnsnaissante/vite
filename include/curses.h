@@ -372,7 +372,7 @@ typedef struct
  *
  */
 
-#ifdef PDC_DLL_BUILD
+#if 1
 # ifdef CURSES_LIBRARY
 #  define PDCEX __declspec(dllexport) extern
 # else

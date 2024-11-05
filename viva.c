@@ -23,20 +23,7 @@
 #include "terminal.h"
 #include "gap_buffer.h"
 
-
-
 int main(int argc, char* argv[]) {
-#ifdef _WIN32   // Init Terminal Raw Mode
-    HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
-    DWORD crntMode;
-    INPUT_RECORD inputRecord;
-    DWORD events;
-    enable_raw_mode(hConsole, &crntMode);
-#else
-    struct termios orig_termios;
-    enable_raw_mode(&orig_termios);
-#endif
-    int scroll_offset = 0;
     char file_name[100];
     char file_extension[10];
     if (argc > 1)   // get file name and its extension from parameter
@@ -48,19 +35,26 @@ int main(int argc, char* argv[]) {
         strcpy(file_name, "No Name");
         strcpy(file_extension, "no tf");
     }
+    initscr();
+    cbreak();
+    noecho();
 
-    int terminal_height, terminal_width;
-    int last_line = 1;
-    get_console_size(&terminal_height, &terminal_width);
+    int height = LINES - 2;
+    int width = COLS;
 
-    Cursor* cursor = create_new_cursor();
-    GapBuffer* gap_buffer = create_gap_buffer(4);
-    while (1)
-    {
-        handle_key(cursor, gap_buffer,terminal_height, terminal_width, &scroll_offset);
+    // Text Area
+    WINDOW* text_window = newwin(height, width, 0, 0);
 
+    // Status Area
+    WINDOW* status_window = newwin(1, width, height, 0);
+
+    // Message Area
+    WINDOW* message_window = newwin(1, width, height + 1, 0);
+
+    while (1) {
+        draw_status_bar(width, file_name, file_extension,0,0, status_window);
+        draw_message_bar(message_window);
+        refresh_screen(text_window, status_window, message_window);
     }
     return 0;
 }
-
-
