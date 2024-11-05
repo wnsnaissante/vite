@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     struct termios orig_termios;
     enable_raw_mode(&orig_termios);
 #endif
-
+    int scroll_offset = 0;
     char file_name[100];
     char file_extension[10];
     if (argc > 1)   // get file name and its extension from parameter
@@ -52,14 +52,15 @@ int main(int argc, char* argv[]) {
     int terminal_height, terminal_width;
     int last_line = 1;
     get_console_size(&terminal_height, &terminal_width);
-    clear_screen();
-    Cursor* buf_cursor = create_new_cursor();
-    Cursor* scr_cursor = create_new_cursor();
+
+    Cursor* cursor = create_new_cursor();
     GapBuffer* gap_buffer = create_gap_buffer(4);
     while (1)
     {
-        handle_key(scr_cursor, buf_cursor, gap_buffer,terminal_height, terminal_width);
-        print_gap_buffer(gap_buffer);
+        handle_key(cursor, gap_buffer,terminal_height, terminal_width, &scroll_offset);
+
     }
     return 0;
 }
+
+

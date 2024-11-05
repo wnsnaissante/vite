@@ -16,6 +16,12 @@
     <Filter Include="소스 파일\terminal">
       <UniqueIdentifier>{fe5c2cfe-7874-4102-9c7f-eee9fedb25cc}</UniqueIdentifier>
     </Filter>
+    <Filter Include="소스 파일\lib">
+      <UniqueIdentifier>{df4b85cb-f7e7-4b56-99df-e7567b65aa74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="소스 파일\include">
+      <UniqueIdentifier>{1a9e2b2d-9cef-43c0-941e-0ca7d1ac0397}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="viva.c">
@@ -24,10 +30,32 @@
     <ClCompile Include="terminal.c">
       <Filter>소스 파일\terminal</Filter>
     </ClCompile>
+    <ClCompile Include="gap_buffer.c">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="terminal.h">
       <Filter>소스 파일\terminal</Filter>
     </ClInclude>
+    <ClInclude Include="gap_buffer.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="include\curses.h">
+      <Filter>소스 파일\include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\panel.h">
+      <Filter>소스 파일\include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile">
+      <Filter>소스 파일</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\pdcurses.a">
+      <Filter>소스 파일\lib</Filter>
+    </Library>
   </ItemGroup>
 </Project>
