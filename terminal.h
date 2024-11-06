@@ -5,9 +5,10 @@
 #include "gap_buffer.h"
 #include <curses.h>
 
-void draw_text_area(WINDOW* text_window);
+void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer);
 void draw_status_bar(int width, char* file_name, char* file_extension, int current_line, int total_lines, WINDOW* status_window);
-void draw_message_bar(WINDOW* message_window);
+void draw_default_message_bar(WINDOW* message_window);
 void refresh_screen(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window);
+void draw_quit_message_bar(WINDOW* message_window);
 
 #endif // TERMINAL_H

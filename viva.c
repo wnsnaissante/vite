@@ -23,9 +23,74 @@
 #include "terminal.h"
 #include "gap_buffer.h"
 
+char file_name[100];
+char file_extension[10];
+
+void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
+    int ch = getch();
+    switch (ch) {
+        case 17: // Ctrl-Q
+            if (strlen(gap_buffer->char_buffer)==0) {
+                endwin(text_window);
+                endwin(status_window);
+                endwin(message_window);
+				exit(0);
+                break;
+			}
+			else {
+				draw_quit_message_bar(message_window);
+                refresh_screen(text_window, status_window, message_window);
+                ch = getch();
+                if (ch == 17) {
+                    endwin(text_window);
+                    endwin(status_window);
+                    endwin(message_window);
+                    exit(0);
+                }
+                else {
+                    werase(message_window);
+					draw_default_message_bar(message_window);
+                    wrefresh(message_window);
+                    break;
+				}
+			}
+            break;
+        case 19: // Ctrl-S
+            break;
+        case 6: // Ctrl-F
+            break;
+        case KEY_UP:
+		    break;
+        case KEY_DOWN:
+            break;
+        case KEY_LEFT:
+            break;
+	    case KEY_RIGHT:
+		    break;
+	    case KEY_BACKSPACE:
+            delete_char(gap_buffer, 0);
+		    break;
+	    case KEY_HOME:
+		    break;
+	    case KEY_END:
+		    break;
+	    default:
+            insert_char(gap_buffer, ch, 0);
+		    break;
+        }
+    draw_default_message_bar(message_window);
+    draw_status_bar(COLS, file_name, file_extension, 0, 0, status_window);
+    draw_text_area(text_window, gap_buffer);
+    refresh_screen(text_window, status_window, message_window);
+}
+
 int main(int argc, char* argv[]) {
-    char file_name[100];
-    char file_extension[10];
+    initscr();
+    cbreak();
+    noecho();
+    keypad(stdscr, TRUE);
+    GapBuffer* gap_buffer = create_gap_buffer(1024);
+    int gap_buffer_cursor = 0;
     if (argc > 1)   // get file name and its extension from parameter
     {
         strcpy(file_name, argv[1]);
@@ -35,9 +100,7 @@ int main(int argc, char* argv[]) {
         strcpy(file_name, "No Name");
         strcpy(file_extension, "no tf");
     }
-    initscr();
-    cbreak();
-    noecho();
+    
 
     int height = LINES - 2;
     int width = COLS;
@@ -52,9 +115,8 @@ int main(int argc, char* argv[]) {
     WINDOW* message_window = newwin(1, width, height + 1, 0);
 
     while (1) {
-        draw_status_bar(width, file_name, file_extension,0,0, status_window);
-        draw_message_bar(message_window);
-        refresh_screen(text_window, status_window, message_window);
+        handle_key_(text_window, status_window, message_window, gap_buffer);
     }
     return 0;
 }
+
