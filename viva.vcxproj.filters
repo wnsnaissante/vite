@@ -52,9 +52,12 @@
     <None Include="Makefile">
       <Filter>소스 파일</Filter>
     </None>
+    <None Include="lib\pdcurses.dll">
+      <Filter>소스 파일\lib</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="lib\pdcurses.a">
+    <Library Include="lib\pdcurses.lib">
       <Filter>소스 파일\lib</Filter>
     </Library>
   </ItemGroup>

@@ -23,8 +23,12 @@
 #include "terminal.h"
 #include "gap_buffer.h"
 
-char file_name[100];
-char file_extension[10];
+static char file_name[100];
+static char file_extension[10];
+
+static int scr_csr_x = 0;
+static int scr_csr_y = 0;
+static int gap_buffer_cursor_1d_position = 0;
 
 void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
     int ch = getch();
@@ -56,6 +60,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
 			}
             break;
         case 19: // Ctrl-S
+            save_to_file(gap_buffer, file_name, file_extension);
             break;
         case 6: // Ctrl-F
             break;
@@ -64,24 +69,47 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
         case KEY_DOWN:
             break;
         case KEY_LEFT:
+            scr_csr_x--;
+            gap_buffer_cursor_1d_position--;
+            move(scr_csr_y, scr_csr_x);
             break;
 	    case KEY_RIGHT:
-		    break;
-	    case KEY_BACKSPACE:
-            delete_char(gap_buffer, 0);
-		    break;
-	    case KEY_HOME:
+            scr_csr_x++;
+            move(scr_csr_y, scr_csr_x);
+            break;
+        case KEY_BACKSPACE:
+            break;
+        case 8: // Backspace
+            if (scr_csr_x > 1) {
+                delete_char(gap_buffer, gap_buffer_cursor_1d_position);
+                scr_csr_x--;
+                gap_buffer_cursor_1d_position--;
+                move(scr_csr_y, scr_csr_x);
+                break;
+            }
+            break;
+	    case 449: // 노트북 홈키
 		    break;
 	    case KEY_END:
 		    break;
 	    default:
-            insert_char(gap_buffer, ch, 0);
+            insert_char(gap_buffer, ch, gap_buffer_cursor_1d_position);
+            gap_buffer_cursor_1d_position++;
+            if (ch == 10) {
+                scr_csr_x = 0;
+                scr_csr_y++;
+
+                move(scr_csr_y, scr_csr_x);
+            }
+            else {
+                scr_csr_x++;
+
+                move(scr_csr_y, scr_csr_x);
+            }
+            
+            move(scr_csr_y, scr_csr_x);
 		    break;
         }
-    draw_default_message_bar(message_window);
-    draw_status_bar(COLS, file_name, file_extension, 0, 0, status_window);
-    draw_text_area(text_window, gap_buffer);
-    refresh_screen(text_window, status_window, message_window);
 }
 
 int main(int argc, char* argv[]) {
@@ -89,6 +117,7 @@ int main(int argc, char* argv[]) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
+
     GapBuffer* gap_buffer = create_gap_buffer(1024);
     int gap_buffer_cursor = 0;
     if (argc > 1)   // get file name and its extension from parameter
@@ -97,8 +126,8 @@ int main(int argc, char* argv[]) {
         strcpy(file_extension, strpbrk(file_name, "."));
     }
     else {
-        strcpy(file_name, "No Name");
-        strcpy(file_extension, "no tf");
+        strcpy(file_name, "test_filesave");
+        strcpy(file_extension, ".txt");
     }
     
 
@@ -116,6 +145,12 @@ int main(int argc, char* argv[]) {
 
     while (1) {
         handle_key_(text_window, status_window, message_window, gap_buffer);
+        werase(text_window);
+        draw_default_message_bar(message_window);
+        //draw_status_bar(COLS, file_name, file_extension, scr_csr_y, get_total_lines(gap_buffer), status_window);
+        draw_status_bar(COLS, file_name, file_extension, gap_buffer_cursor_1d_position, scr_csr_y, status_window);
+        waddstr(text_window, gap_buffer->char_buffer);
+        refresh_screen(text_window, status_window, message_window);
     }
     return 0;
 }
