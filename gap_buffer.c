@@ -135,16 +135,16 @@ void calc_last_line_change_position(GapBuffer* gap_buffer, int position, int* x,
     int target = position;
     int target_x = 0;
     int target_y = 0;
-    for (int i = 0; i < target; i++)
+    for (int i = 0; i < target-1; i++)
     {
         target_x++;
-        if (target_x > COLS || gap_buffer->char_buffer[i]=='\n') {
+        if (target_x >= COLS || gap_buffer->char_buffer[i]=='\n') {
             target_y++;
             target_x = 0;
         }
     }
     *x = target_x;
-    *y = target_y + 1;
+    *y = target_y;
 }
 
 int get_total_lines(GapBuffer* gap_buffer) {
