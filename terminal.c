@@ -1,38 +1,10 @@
 #include "terminal.h"
 
-void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer) {
-    int row = 0, col = 0;
-
+void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer, int page) {
     
-    int height, width;
-    getmaxyx(text_window, height, width);
-
-    if (strlen(gap_buffer->char_buffer) == 0) {
-        for (int i = 0; i < height; i++)
-        {
-            mvwprintw(text_window, i, 0, "~");
-        }
-    }
-    else
-    {
-        for (int i = 0; i < gap_buffer->gap_start; i++) {
-            mvwaddch(text_window, row, col++, gap_buffer->char_buffer[i]);
-            if (gap_buffer->char_buffer[i] == '\n') {
-                row++;
-                col = 0;
-            }
-        }
-
-        
-        for (int i = gap_buffer->gap_end + 1; i < gap_buffer->size; i++) {
-            mvwaddch(text_window, row, col++, gap_buffer->char_buffer[i]);
-            if (gap_buffer->char_buffer[i] == '\n') {
-                row++;
-                col = 0;
-            }
-        }
-    }
 }
+
+
 
 void draw_status_bar(int width, char* file_name, char* file_extension, int current_line, int total_lines, WINDOW* status_window) {
     start_color();

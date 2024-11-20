@@ -39,48 +39,23 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
     return gap_buffer;
 }
 
-void move_gap_left(GapBuffer* gap_buffer, int position) {
-    if (position < gap_buffer->gap_start || position > gap_buffer->gap_end) {
-        return;
-    }
-    while (position < gap_buffer->gap_start)
-    {
-        if (gap_buffer->gap_start == 0) {
-            break;
-        }
+GapBuffer* move_gap_left(GapBuffer* gap_buffer, int position) {
+    while (gap_buffer->gap_start > position) {
+        gap_buffer->char_buffer[gap_buffer->gap_end] = gap_buffer->char_buffer[gap_buffer->gap_start - 1];
+        gap_buffer->char_buffer[gap_buffer->gap_start - 1] = '\0';
         gap_buffer->gap_start--;
         gap_buffer->gap_end--;
-        memset(&gap_buffer->char_buffer[gap_buffer->gap_end + 1], gap_buffer->char_buffer[gap_buffer->gap_start], 1 * sizeof(char));
-        memset(&gap_buffer->char_buffer[gap_buffer->gap_start], 0, 1 * sizeof(char));
     }
+    return gap_buffer;
 }
 
 GapBuffer* move_gap_right(GapBuffer* gap_buffer, int position) {
-    // 갭이 이동할 필요가 없으면 반환
-    if (position <= gap_buffer->gap_start) {
-        return gap_buffer;
+    while (gap_buffer->gap_start < position) {
+        gap_buffer->char_buffer[gap_buffer->gap_start] = gap_buffer->char_buffer[gap_buffer->gap_end + 1];
+        gap_buffer->char_buffer[gap_buffer->gap_end + 1] = '\0';
+        gap_buffer->gap_start++;
+        gap_buffer->gap_end++;
     }
-
-    // 이동 거리 계산
-    int move_distance = position - gap_buffer->gap_start;
-
-    // 갭을 이동하기 전에 크기 조정
-    if (gap_buffer->gap_end + move_distance >= gap_buffer->size) {
-        gap_buffer = resize_gap_buffer(gap_buffer);
-    }
-
-    // 갭을 오른쪽으로 이동
-    memmove(&gap_buffer->char_buffer[gap_buffer->gap_start],
-        &gap_buffer->char_buffer[gap_buffer->gap_end],
-        move_distance);
-
-    // 갭 인덱스 업데이트
-    gap_buffer->gap_start += move_distance;
-    gap_buffer->gap_end += move_distance;
-
-    // 갭을 비우기
-    memset(&gap_buffer->char_buffer[gap_buffer->gap_start], '\0', move_distance);
-
     return gap_buffer;
 }
 
@@ -104,10 +79,8 @@ void insert_char(GapBuffer* gap_buffer, char c, int position) {
         gap_buffer = resize_gap_buffer(gap_buffer);
     }
 
-    if (gap_buffer->gap_start < gap_buffer->size) {
-        memset(&gap_buffer->char_buffer[gap_buffer->gap_start], c, sizeof(char) * 1);
-        gap_buffer->gap_start++;
-    }
+    gap_buffer->char_buffer[gap_buffer->gap_start] = c;
+    gap_buffer->gap_start++;
 }
 
 void delete_char(GapBuffer* gap_buffer, int position) {
@@ -158,16 +131,23 @@ int get_total_lines(GapBuffer* gap_buffer) {
     return total_lines;
 }
 
-void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
-    char* target = strcat(filename, file_extension);
-    FILE* file = fopen(target, "w");
+int calc_page(int* y) {
+    return *y / (LINES-2);
+}
 
-    for (int i = 0; i < gap_buffer->size; i++) {
-        if (i < gap_buffer->gap_start || i >= gap_buffer->gap_end) {
-            fputc(gap_buffer->char_buffer[i], file);
-        }
+void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
+    char target[FILENAME_MAX];
+    snprintf(target, sizeof(target), "%s%s", filename, file_extension);
+    FILE* file = fopen(target, "w");
+    if (file == NULL) {
+        perror("Failed to open file");
+        return;
     }
 
-    // 파일 닫기
+    fwrite(gap_buffer->char_buffer, sizeof(char), gap_buffer->gap_start, file);
+
+    fwrite(gap_buffer->char_buffer + gap_buffer->gap_end + 1, sizeof(char),
+        gap_buffer->size - gap_buffer->gap_end - 1, file);
+
     fclose(file);
 }

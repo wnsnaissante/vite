@@ -26,6 +26,7 @@
 static char file_name[100];
 static char file_extension[10];
 
+static int crnt_page = 0;
 static int scr_csr_x = 0;
 static int scr_csr_y = 0;
 static int gap_buffer_cursor_1d_position = 0;
@@ -103,6 +104,8 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
                     break;
                 } 
             }
+            break;
+        case KEY_HOME:
 	    case 449: // 노트북 홈키
 		    break;
 	    case KEY_END:
@@ -132,6 +135,7 @@ int main(int argc, char* argv[]) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
+    
 
     GapBuffer* gap_buffer = create_gap_buffer(1024);
     int gap_buffer_cursor = 0;
@@ -157,16 +161,18 @@ int main(int argc, char* argv[]) {
 
     // Message Area
     WINDOW* message_window = newwin(1, width, height + 1, 0);
+    scrollok(text_window, TRUE);
 
     while (1) {
+
         handle_key_(text_window, status_window, message_window, gap_buffer);
         werase(text_window);
         draw_default_message_bar(message_window);
         //draw_status_bar(COLS, file_name, file_extension, scr_csr_y, get_total_lines(gap_buffer), status_window);
-        draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
+        draw_status_bar(COLS, file_name, file_extension, scr_csr_x, calc_page(&scr_csr_y), status_window);
         waddstr(text_window, gap_buffer->char_buffer);
         refresh_screen(text_window, status_window, message_window);
+
     }
     return 0;
 }
-
