@@ -34,7 +34,6 @@ void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer) {
     }
 }
 
-
 void draw_status_bar(int width, char* file_name, char* file_extension, int current_line, int total_lines, WINDOW* status_window) {
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);

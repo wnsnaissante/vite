@@ -162,7 +162,6 @@ void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_
     char* target = strcat(filename, file_extension);
     FILE* file = fopen(target, "w");
 
-
     for (int i = 0; i < gap_buffer->size; i++) {
         if (i < gap_buffer->gap_start || i >= gap_buffer->gap_end) {
             fputc(gap_buffer->char_buffer[i], file);

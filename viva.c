@@ -80,12 +80,15 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
         case KEY_BACKSPACE:
             break;
         case 8: // Backspace
-            if (scr_csr_x > 1) {
+            if (scr_csr_x >= 1) {
                 delete_char(gap_buffer, gap_buffer_cursor_1d_position);
                 scr_csr_x--;
                 gap_buffer_cursor_1d_position--;
                 move(scr_csr_y, scr_csr_x);
                 break;
+            }
+            else {
+                
             }
             break;
 	    case 449: // 노트북 홈키
