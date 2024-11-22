@@ -1,19 +1,21 @@
+# Variables
+CC = gcc
+CFLAGS = -Wall -Wextra -O2 -march=native -funroll-loops -fomit-frame-pointer -I./include -L./lib
+LDFLAGS = -L./lib -lpdcurses -lm
 OBJS = gap_buffer.o terminal.o viva.o
 TARGET = viva.out
 
+# Targets
 all: $(TARGET)
 
 $(TARGET): $(OBJS)
-	gcc -o $(TARGET) $(OBJS) -L./lib -lpdcurses -lm
+	$(CC) -o $@ $^ $(LDFLAGS)
 
-gap_buffer.o: gap_buffer.h gap_buffer.c
-	gcc -c -o gap_buffer.o gap_buffer.c -Wall -Wextra -I./include -L./lib
-
-terminal.o: terminal.h terminal.c
-	gcc -c -o terminal.o terminal.c -Wall -Wextra -I./include -L./lib
+%.o: %.c %.h
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 viva.o: viva.c
-	gcc -c -o viva.o viva.c -Wall -Wextra -I./include -L./lib
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 clean:
 ifeq ($(OS),Windows_NT)
