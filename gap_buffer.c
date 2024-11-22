@@ -27,12 +27,10 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
     printf("%d %d\n", before_realloc_size, new_alloc_size);
 
     // Allocate new buffer
-    char* new_buffer = (char*)calloc(new_alloc_size, sizeof(char));
-    memcpy(new_buffer, gap_buffer->char_buffer, before_realloc_size);
-
-
-    free(gap_buffer->char_buffer);
+    char* new_buffer = (char*)realloc(gap_buffer->char_buffer, new_alloc_size * sizeof(char));
+    
     gap_buffer->char_buffer = new_buffer;
+
     gap_buffer->size = new_alloc_size;
     gap_buffer->gap_end = new_alloc_size - 1;
 
@@ -158,7 +156,7 @@ void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_
     fclose(file);
 }
 
-void open_file_write_gap_buffer(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
+void open_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
 	char target[FILENAME_MAX];
 	snprintf(target, sizeof(target), "%s%s", filename, file_extension);
 	FILE* file = fopen(target, "r");
@@ -166,5 +164,11 @@ void open_file_write_gap_buffer(GapBuffer* gap_buffer, const char* filename, con
 		perror("Failed to open file");
 		return;
 	}
-
+    char c;
+	int position = 0;
+    while ((c = fgetc(file)) != EOF) {
+        insert_char(gap_buffer, c, position);
+        position++;
+    }
+    fclose(file);
 }
