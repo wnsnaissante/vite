@@ -24,7 +24,6 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
 
     // Align Memory to multiples of 4 
     new_alloc_size = (new_alloc_size + 3) & ~3;
-    printf("%d %d\n", before_realloc_size, new_alloc_size);
 
     // Allocate new buffer
     char* new_buffer = (char*)realloc(gap_buffer->char_buffer, new_alloc_size * sizeof(char));
@@ -36,6 +35,7 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
 
     return gap_buffer;
 }
+
 
 GapBuffer* move_gap_left(GapBuffer* gap_buffer, int position) {
     while (gap_buffer->gap_start > position) {
@@ -156,7 +156,7 @@ void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_
     fclose(file);
 }
 
-void open_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
+int open_file(GapBuffer *gap_buffer, const char *filename, const char *file_extension) {
 	char target[FILENAME_MAX];
 	snprintf(target, sizeof(target), "%s%s", filename, file_extension);
 	FILE* file = fopen(target, "r");
@@ -171,4 +171,5 @@ void open_file(GapBuffer* gap_buffer, const char* filename, const char* file_ext
         position++;
     }
     fclose(file);
+    return gap_buffer->gap_start;
 }
