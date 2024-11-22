@@ -62,7 +62,3 @@ void refresh_screen(WINDOW* text_window, WINDOW* status_window, WINDOW* message_
 	wrefresh(status_window);
 	wrefresh(message_window);
 }
-
-void move_cursor(WINDOW* text_window, int* scr_csr_x, int* scr_csr_y) {
-
-}

@@ -45,9 +45,6 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
     switch (ch) {
         case 17: // Ctrl-Q
             if (strlen(gap_buffer->char_buffer)==0 || is_saved == 1) {
-                endwin(text_window);
-                endwin(status_window);
-                endwin(message_window);
 				exit(0);
                 break;
 			}
@@ -56,9 +53,6 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
                 refresh_screen(text_window, status_window, message_window);
                 ch = getch();
                 if (ch == 17) {
-                    endwin(text_window);
-                    endwin(status_window);
-                    endwin(message_window);
                     exit(0);
                 }
                 else {
@@ -140,7 +134,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
 
 			if (scr_csr_x == COLS) {
 				scr_csr_x = 0;
-				wprintf(text_window, "\n");
+				wprintw(text_window, "\n");
                 scr_csr_y++;
             }
 
@@ -178,17 +172,16 @@ int main(int argc, char* argv[]) {
     
 
     GapBuffer* gap_buffer = create_gap_buffer(1024);
-    int gap_buffer_cursor = 0;
     if (argc > 1)   // get file name and its extension from parameter
     {
-		char* original_file_name = argv[1];
-		strcpy(file_extension, strpbrk(original_file_name, ".")); // get file extension
-		strcpy(file_name, strtok(original_file_name, ".")); // get file name
+        char* original_file_name = argv[1];
+        strcpy(file_extension, strpbrk(original_file_name, ".")); // get file extension
+        strcpy(file_name, strtok(original_file_name, ".")); // get file name
         free(original_file_name);
-
+        gap_buffer_cursor_1d_position = open_file(gap_buffer, file_name, file_extension);
     }
     else {
-        strcpy(file_name, "No name");
+        strcpy(file_name, "Noname");
         strcpy(file_extension, ".txt");
     }
     
@@ -220,7 +213,6 @@ int main(int argc, char* argv[]) {
         // draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
 		draw_text_area(text_window, gap_buffer);
         refresh_screen(text_window, status_window, message_window);
-		move_cursor(text_window, &scr_csr_x, &scr_csr_y);
     }
     return 0;
 }
