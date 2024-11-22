@@ -88,6 +88,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
             break;
 	    case KEY_RIGHT:
             scr_csr_x++;
+            gap_buffer_cursor_1d_position++;
             move(scr_csr_y, scr_csr_x);
             break;
         case KEY_BACKSPACE:
@@ -181,6 +182,9 @@ int main(int argc, char* argv[]) {
     if (argc > 1)   // get file name and its extension from parameter
     {
 		char* original_file_name = argv[1];
+		strcpy(file_extension, strpbrk(original_file_name, ".")); // get file extension
+		strcpy(file_name, strtok(original_file_name, ".")); // get file name
+        free(original_file_name);
 
     }
     else {
@@ -214,7 +218,7 @@ int main(int argc, char* argv[]) {
         draw_default_message_bar(message_window);
         draw_status_bar(COLS, file_name, file_extension, scr_csr_y, get_total_lines(gap_buffer), status_window);
         // draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
-        waddstr(text_window, gap_buffer->char_buffer);
+		draw_text_area(text_window, gap_buffer);
         refresh_screen(text_window, status_window, message_window);
 		move_cursor(text_window, &scr_csr_x, &scr_csr_y);
     }
