@@ -10,6 +10,7 @@ void draw_status_bar(int width, char* file_name, char* file_extension, int curre
 void draw_default_message_bar(WINDOW* message_window);
 void refresh_screen(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window);
 void draw_quit_message_bar(WINDOW* message_window);
+void move_cursor(WINDOW* text_window, int* scr_csr_x, int* scr_csr_y);
 void calc_screen_cursor_position(int* scr_cursor_x, int* scr_cursor_y);
 
 #endif // TERMINAL_H

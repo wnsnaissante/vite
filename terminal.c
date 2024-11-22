@@ -63,5 +63,5 @@ void refresh_screen(WINDOW* text_window, WINDOW* status_window, WINDOW* message_
 }
 
 void move_cursor(WINDOW* text_window, int* scr_csr_x, int* scr_csr_y) {
-	
+
 }

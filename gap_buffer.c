@@ -137,7 +137,13 @@ int calc_page(int* y) {
 
 void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
     char target[FILENAME_MAX];
-    snprintf(target, sizeof(target), "%s%s", filename, file_extension);
+    if (file_extension == NULL) {
+        snprintf(target, sizeof(target), "%s", filename);
+    }
+    else {
+        snprintf(target, sizeof(target), "%s%s", filename, file_extension);
+    }
+    
     FILE* file = fopen(target, "w");
     if (file == NULL) {
         perror("Failed to open file");
@@ -150,4 +156,15 @@ void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_
         gap_buffer->size - gap_buffer->gap_end - 1, file);
 
     fclose(file);
+}
+
+void open_file_write_gap_buffer(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
+	char target[FILENAME_MAX];
+	snprintf(target, sizeof(target), "%s%s", filename, file_extension);
+	FILE* file = fopen(target, "r");
+	if (file == NULL) {
+		perror("Failed to open file");
+		return;
+	}
+
 }
