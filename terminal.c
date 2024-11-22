@@ -1,7 +1,8 @@
 #include "terminal.h"
 
-void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer, int page) {
-    
+void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer) {
+	waddnstr(text_window, gap_buffer->char_buffer, gap_buffer->size);
+	waddnstr(text_window, gap_buffer->char_buffer + gap_buffer->gap_end + 1, gap_buffer->size - gap_buffer->gap_end - 1);
 }
 
 
