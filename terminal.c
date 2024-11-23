@@ -1,11 +1,15 @@
 #include "terminal.h"
 
 void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer) {
-	waddnstr(text_window, gap_buffer->char_buffer, gap_buffer->size);
-	waddnstr(text_window, gap_buffer->char_buffer + gap_buffer->gap_end + 1, gap_buffer->size - gap_buffer->gap_end - 1);
+    if (gap_buffer->gap_start > 0) {
+        waddnstr(text_window, gap_buffer->char_buffer, gap_buffer->gap_start);
+    }
+    if (gap_buffer->gap_end < gap_buffer->size - 1) {
+        waddnstr(text_window,
+            gap_buffer->char_buffer + gap_buffer->gap_end + 1,
+            gap_buffer->size - gap_buffer->gap_end - 1);
+    }
 }
-
-
 
 void draw_status_bar(int width, char* file_name, char* file_extension, int current_line, int total_lines, WINDOW* status_window) {
     start_color();
@@ -16,6 +20,8 @@ void draw_status_bar(int width, char* file_name, char* file_extension, int curre
     int temp_total_line = total_lines;
     int crnt_line_len = 0;
     int total_line_len = 0;
+	char* no_extension = "no ft";
+	char* no_name = "No name";
 
     if (temp_crnt_line == 0) {
         crnt_line_len = 1;
@@ -36,14 +42,33 @@ void draw_status_bar(int width, char* file_name, char* file_extension, int curre
             total_line_len++;
         }
     }
-    
-    int blanks_count = width - (int)strlen(file_name) - (int)strlen(file_extension) - 17 - crnt_line_len*2 - total_line_len;
+
+
     char* status = (char*)malloc(width + 1);
-    
-    snprintf(status, width + 1, "[%s] - %d lines %*s %s | %d/%d",
-        file_name, current_line,
-        blanks_count, "",
-        file_extension, current_line, total_lines);
+    if (strlen(file_extension) > 0)
+    {
+        int blanks_count = width - (int)strlen(file_name) - (int)strlen(file_extension) - 17 - crnt_line_len * 2 - total_line_len;
+        snprintf(status, width + 1, "[%s] - %d lines %*s %s | %d/%d",
+            file_name, current_line,
+            blanks_count, "",
+            file_extension, current_line, total_lines);
+    }
+    else {
+		if (strlen(file_name) > 0) {
+            int blanks_count = width - (int)strlen(file_name) - 5 - 17 - crnt_line_len * 2 - total_line_len;
+            snprintf(status, width + 1, "[%s] - %d lines %*s %s | %d/%d",
+                file_name, current_line,
+                blanks_count, "",
+                no_extension, current_line, total_lines);
+        }
+        else {
+            int blanks_count = width - (int)strlen(no_name) - 5 - 17 - crnt_line_len * 2 - total_line_len;
+            snprintf(status, width + 1, "[%s] - %d lines %*s %s | %d/%d",
+                no_name, current_line,
+                blanks_count, "",
+                no_extension, current_line, total_lines);
+        }
+    }
     
     mvwprintw(status_window, 0, 0, "%s", status);
     wattroff(status_window, COLOR_PAIR(1));

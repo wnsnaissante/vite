@@ -36,6 +36,7 @@ static int crnt_page = 0;
 static int scr_csr_x = 0;
 static int scr_csr_y = 0;
 static int gap_buffer_cursor_1d_position = 0;
+static int total_lines = 0;
 
 void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
     draw_default_message_bar(message_window);
@@ -43,125 +44,138 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
     refresh();
     int ch = getch();
     switch (ch) {
-        case 17: // Ctrl-Q
-            if (strlen(gap_buffer->char_buffer)==0 || is_saved == 1) {
-				exit(0);
-                break;
-			}
-			else {
-				draw_quit_message_bar(message_window);
-                refresh_screen(text_window, status_window, message_window);
-                ch = getch();
-                if (ch == 17) {
-                    exit(0);
-                }
-                else {
-                    werase(message_window);
-					draw_default_message_bar(message_window);
-                    wrefresh(message_window);
-                    break;
-				}
-			}
+    case 17: // Ctrl-Q
+        if (strlen(gap_buffer->char_buffer) == 0 || is_saved == 1) {
+            exit(0);
             break;
-        case 19: // Ctrl-S
-            is_saved = 1;
-            save_to_file(gap_buffer, file_name, file_extension);
-            break;
-        case 6: // Ctrl-F
-            break;
-        case KEY_UP:
-            
-		    break;
-        case KEY_DOWN:
-
-            break;
-        case KEY_LEFT:
-            scr_csr_x--;
-            gap_buffer_cursor_1d_position--;
-            move(scr_csr_y, scr_csr_x);
-            break;
-	    case KEY_RIGHT:
-            scr_csr_x++;
-            gap_buffer_cursor_1d_position++;
-            move(scr_csr_y, scr_csr_x);
-            break;
-        case KEY_BACKSPACE:
-        case 8: // Backspace
-            is_saved = 0;
-            if (scr_csr_y > 0) {
-                if (scr_csr_x >= 1) {
-                    delete_char(gap_buffer, gap_buffer_cursor_1d_position);
-                    gap_buffer_cursor_1d_position--;
-                    scr_csr_x--;
-                    move(scr_csr_y, scr_csr_x);
-                    break;
-                }
-                else {
-                    delete_char(gap_buffer, gap_buffer_cursor_1d_position);
-                    calc_last_line_change_position(gap_buffer, gap_buffer_cursor_1d_position, &scr_csr_x, &scr_csr_y);
-                    if (scr_csr_y >= LINES - 2) {
-                        scr_csr_y = LINES - 2;
-						wscrl(text_window, -1);
-                        refresh();
-                    }
-                    move(scr_csr_y, scr_csr_x);
-                    gap_buffer_cursor_1d_position--;
-
-                    break;
-                }
+        }
+        else {
+            draw_quit_message_bar(message_window);
+            refresh_screen(text_window, status_window, message_window);
+            ch = getch();
+            if (ch == 17) {
+                exit(0);
             }
             else {
-                if (scr_csr_x >= 1) {
-                    delete_char(gap_buffer, gap_buffer_cursor_1d_position);
-                    gap_buffer_cursor_1d_position--;
-                    scr_csr_x--;
-                    move(scr_csr_y, scr_csr_x);
-                    break;
-                } 
+                werase(message_window);
+                draw_default_message_bar(message_window);
+                wrefresh(message_window);
+                break;
             }
-            break;
-        case KEY_HOME:
-	    case WIN64_KEY_HOME: // 노트북 홈키
-            
-		    break;
-        case WIN64_KEY_END:
-	    case KEY_END:
-		    break;
-	    default:
-            is_saved = 0;
-            insert_char(gap_buffer, ch, gap_buffer_cursor_1d_position);
-            gap_buffer_cursor_1d_position++;
+        }
+        break;
+    case 19: // Ctrl-S
+        is_saved = 1;
+        save_to_file(gap_buffer, file_name, file_extension);
+        break;
+    case 6: // Ctrl-F
+        break;
+    case KEY_UP:
 
-			if (scr_csr_x == COLS) {
-				scr_csr_x = 0;
-				wprintw(text_window, "\n");
+        break;
+    case KEY_DOWN:
+
+        break;
+    case KEY_LEFT:
+        scr_csr_x--;
+        gap_buffer_cursor_1d_position--;
+        move(scr_csr_y, scr_csr_x);
+        break;
+    case KEY_RIGHT:
+        if (gap_buffer->char_buffer[gap_buffer_cursor_1d_position] == '\n') {
+            scr_csr_x = 0;
+            scr_csr_y++;
+        }
+        else {
+            scr_csr_x++;
+        }
+        gap_buffer_cursor_1d_position++;
+
+        move(scr_csr_y, scr_csr_x);
+        break;
+    case KEY_BACKSPACE:
+    case 8: // Backspace
+        if (gap_buffer->char_buffer[gap_buffer_cursor_1d_position - 1] == '\n') {
+            total_lines--;
+        }
+        is_saved = 0;
+        if (scr_csr_y > 0) {
+            if (scr_csr_x >= 1) {
+                delete_char(gap_buffer, gap_buffer_cursor_1d_position);
+                gap_buffer_cursor_1d_position--;
+                scr_csr_x--;
+                move(scr_csr_y, scr_csr_x);
+                break;
+            }
+            else {
+                delete_char(gap_buffer, gap_buffer_cursor_1d_position);
+                calc_last_line_change_position(gap_buffer, gap_buffer_cursor_1d_position, &scr_csr_x, &scr_csr_y);
+                if (scr_csr_y >= LINES - 2) {
+                    scr_csr_y = LINES - 2;
+                    wscrl(text_window, -1);
+                    refresh();
+                }
+                move(scr_csr_y, scr_csr_x);
+                gap_buffer_cursor_1d_position--;
+
+                break;
+            }
+        }
+        else {
+            if (scr_csr_x >= 1) {
+                delete_char(gap_buffer, gap_buffer_cursor_1d_position);
+                gap_buffer_cursor_1d_position--;
+                scr_csr_x--;
+                move(scr_csr_y, scr_csr_x);
+                break;
+            }
+        }
+        break;
+    case KEY_HOME:
+    case WIN64_KEY_HOME: // 노트북 홈키
+
+        break;
+    case WIN64_KEY_END:
+    case KEY_END:
+        break;
+    default:
+        is_saved = 0;
+        insert_char(gap_buffer, ch, gap_buffer_cursor_1d_position);
+        gap_buffer_cursor_1d_position++;
+        if (ch == '\n') {
+            total_lines++;
+        }
+        if (scr_csr_x == COLS) {
+            scr_csr_x = 0;
+            wprintw(text_window, "\n");
+            scr_csr_y++;
+            total_lines++;
+        }
+
+        if (ch == 10) {
+            scr_csr_x = 0;
+            if (scr_csr_y <= LINES - 2)
+            {
                 scr_csr_y++;
             }
-
-            if (ch == 10) {
-                scr_csr_x = 0;
-                if (scr_csr_y <= LINES-2)
-                {
-                    scr_csr_y++;
-                }
-                else {
-					scroll(text_window);
-                }
-                
-                move(scr_csr_y, scr_csr_x);
-            }
             else {
-                scr_csr_x++;
-                move(scr_csr_y, scr_csr_x);
+                scroll(text_window);
             }
-            if (scr_csr_y == LINES - 2) {
-                crnt_page++;
-                scr_csr_y-=1;
-                move(scr_csr_y, scr_csr_x);
-			}
+
             move(scr_csr_y, scr_csr_x);
-		    break;
         }
+        else {
+            scr_csr_x++;
+            move(scr_csr_y, scr_csr_x);
+        }
+        if (scr_csr_y == LINES - 2) {
+            crnt_page++;
+            scr_csr_y -= 1;
+            move(scr_csr_y, scr_csr_x);
+        }
+        move(scr_csr_y, scr_csr_x);
+        break;
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -169,22 +183,30 @@ int main(int argc, char* argv[]) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
-    
+
 
     GapBuffer* gap_buffer = create_gap_buffer(1024);
     if (argc > 1)   // get file name and its extension from parameter
     {
         char* original_file_name = argv[1];
-        strcpy(file_extension, strpbrk(original_file_name, ".")); // get file extension
-        strcpy(file_name, strtok(original_file_name, ".")); // get file name
-        free(original_file_name);
-        gap_buffer_cursor_1d_position = open_file(gap_buffer, file_name, file_extension);
+        if (strpbrk(original_file_name, ".") != NULL) {
+            strcpy(file_extension, strpbrk(original_file_name, ".")); // get file extension
+            strcpy(file_name, strtok(original_file_name, ".")); // get file name
+        }
+        else {
+			strcpy(file_name, original_file_name);
+			strcpy(file_extension, "\0");
+        }
+
+        open_file(gap_buffer, file_name, file_extension);
+        gap_buffer_cursor_1d_position = 0;
+        total_lines = get_total_lines(gap_buffer);
     }
     else {
-        strcpy(file_name, "Noname");
-        strcpy(file_extension, ".txt");
+        strcpy(file_name, "\0");
+		strcpy(file_extension, "\0");
     }
-    
+
 
     int height = LINES - 2;
     int width = COLS;
@@ -202,16 +224,16 @@ int main(int argc, char* argv[]) {
     while (1) {
         handle_key_(text_window, status_window, message_window, gap_buffer);
         if (scr_csr_y == height) {
-			scroll(text_window);
-			scr_csr_y--;
+            scroll(text_window);
+            scr_csr_y--;
             move(scr_csr_y, scr_csr_x);
             wrefresh(text_window);
-		}
+        }
         werase(text_window);
         draw_default_message_bar(message_window);
-        draw_status_bar(COLS, file_name, file_extension, scr_csr_y, get_total_lines(gap_buffer), status_window);
+        draw_status_bar(COLS, file_name, file_extension, scr_csr_y, total_lines, status_window);
         // draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
-		draw_text_area(text_window, gap_buffer);
+        draw_text_area(text_window, gap_buffer);
         refresh_screen(text_window, status_window, message_window);
     }
     return 0;
