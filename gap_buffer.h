@@ -20,7 +20,6 @@ void calc_last_line_change_position(GapBuffer* gap_buffer, int position, int* x,
 int get_total_lines(GapBuffer* gap_buffer);
 void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension);
 
-int open_file(GapBuffer *gap_buffer, const char *filename, const char *file_extension);
-int calc_page(int* y);
+int open_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension);
 
 #endif
