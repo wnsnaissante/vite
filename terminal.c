@@ -69,7 +69,7 @@ void draw_status_bar(int width, char* file_name, char* file_extension, int curre
                 no_extension, current_line, total_lines);
         }
     }
-    
+
     mvwprintw(status_window, 0, 0, "%s", status);
     wattroff(status_window, COLOR_PAIR(1));
 }
@@ -82,8 +82,31 @@ void draw_quit_message_bar(WINDOW* message_window) {
     mvwprintw(message_window, 0, 0, "Really Exit vite? | press 'Ctrl-Q' once more to exit | press any key to cancel");
 }
 
+void draw_save_complete_message_bar(WINDOW* message_window) {
+    mvwprintw(message_window, 0, 0, "File Saved!");
+}
+
 void refresh_screen(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window) {
 	wrefresh(text_window);
 	wrefresh(status_window);
 	wrefresh(message_window);
+}
+
+void calc_opening_position(const GapBuffer* gap_buffer, int* scr_csr_x, int* scr_csr_y, int gap_start) {
+    for (int i = 0; i < gap_start; i++) {
+        if (gap_buffer->char_buffer[i] == '\n') {
+            (*scr_csr_y)++;
+            *scr_csr_x = 0;
+        } else {
+            (*scr_csr_x)++;
+            if (*scr_csr_x >= COLS) {
+                *scr_csr_x = 0;
+                (*scr_csr_y)++;
+            }
+        }
+    }
+
+    if (*scr_csr_y > LINES-2) {
+        *scr_csr_y = LINES-2;
+    }
 }
