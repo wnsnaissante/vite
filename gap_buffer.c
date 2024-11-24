@@ -88,16 +88,6 @@ void delete_char(GapBuffer* gap_buffer, int position) {
         memset(&gap_buffer->char_buffer[gap_buffer->gap_start], (char)0, sizeof(char) * 1);
     }
 }
-int get_above_line_last_index(GapBuffer* gap_buffer, int position) {
-    int result = 0;
-    for (int i = 0; i <= position; i++)
-    {
-        if (gap_buffer->char_buffer[i] == '\n') {
-            result = i;
-        }
-    }
-    return result;
-}
 
 void calc_last_line_change_position(GapBuffer* gap_buffer, int position, int* x, int* y) {
     const int target = position;
@@ -115,6 +105,12 @@ void calc_last_line_change_position(GapBuffer* gap_buffer, int position, int* x,
     *y = target_y;
 }
 
+int calc_next_line_change_position(GapBuffer *gap_buffer, int position, int *x, int *y) {
+
+}
+
+
+
 int get_total_lines(GapBuffer* gap_buffer) {
     int total_lines = 1;
     for (int i = 0; i < gap_buffer->size; i++)
@@ -124,6 +120,10 @@ int get_total_lines(GapBuffer* gap_buffer) {
         }
     }
     return total_lines;
+}
+
+void new_file(GapBuffer* filename_buffer) {
+
 }
 
 void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
@@ -163,10 +163,10 @@ int open_file(GapBuffer* gap_buffer, const char* filename, const char* file_exte
         perror("ERR! failed to open file");
         return;
     }
-    char parsedChar;
+    char parsed_char;
     int position = 0;
-    while ((parsedChar = fgetc(file)) != EOF) {
-        insert_char(gap_buffer, parsedChar, position);
+    while ((parsed_char = fgetc(file)) != EOF) {
+        insert_char(gap_buffer, parsed_char, position);
         position++;
     }
     fclose(file);
