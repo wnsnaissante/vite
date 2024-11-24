@@ -45,6 +45,40 @@ static int scr_csr_y = 0;
 static int gap_buffer_cursor_1d_position = 0;
 static int total_lines = 0;
 
+
+void move_cursor_left(GapBuffer* gap_buffer, int* position, int* scr_x, int* scr_y) {
+    if (*scr_x == 0) {
+        int last_line_start = 0;
+        for (int i = *position - 1; i >= 0; i--) {
+            if (gap_buffer->char_buffer[i] == '\n') {
+                last_line_start = i + 1;
+                break;
+            }
+        }
+
+        int prev_line_end = *position - 1;
+        for (int i = last_line_start; i < *position; i++) {
+            if (gap_buffer->char_buffer[i] == '\n') {
+                prev_line_end = i - 1;
+                break;
+            }
+        }
+
+        *position = prev_line_end;
+        *scr_x = (prev_line_end - last_line_start) % COLS;
+        *scr_y -= 1;
+        if (*scr_y < 0) *scr_y = 0;
+    } else {
+        *position -= 1;
+        *scr_x -= 1;
+    }
+
+    if (*scr_y < 0) {
+        *scr_y = 0;
+    }
+    move(*scr_y, *scr_x);
+}
+
 void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
     draw_default_message_bar(message_window);
     draw_status_bar(COLS, file_name, file_extension, scr_csr_y, get_total_lines(gap_buffer), status_window);
@@ -114,49 +148,8 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
         break;
     case KEY_LEFT:
         break;
-    case KEY_RIGHT:
-        break;
-    case KEY_BACKSPACE:
-    case WIN64_KEY_BACKSPACE:
-        if (gap_buffer->char_buffer[gap_buffer_cursor_1d_position - 1] == '\n') {
-            total_lines--;
-        }
-        is_saved = 0;
-        if (scr_csr_y > 0) {
-            if (scr_csr_x >= 1) {
-                delete_char(gap_buffer, gap_buffer_cursor_1d_position);
-                gap_buffer_cursor_1d_position--;
-                scr_csr_x--;
-                move(scr_csr_y, scr_csr_x);
-                break;
-            }
-            else {
-                delete_char(gap_buffer, gap_buffer_cursor_1d_position);
-                calc_last_line_change_position(gap_buffer, gap_buffer_cursor_1d_position, &scr_csr_x, &scr_csr_y);
-                if (scr_csr_y >= LINES - 2) {
-                    scr_csr_y = LINES - 2;
-                    wscrl(text_window, -1);
-                    refresh();
-                }
-                move(scr_csr_y, scr_csr_x);
-                gap_buffer_cursor_1d_position--;
-
-                break;
-            }
-        }
-        else {
-            if (scr_csr_x >= 1) {
-                delete_char(gap_buffer, gap_buffer_cursor_1d_position);
-                gap_buffer_cursor_1d_position--;
-                scr_csr_x--;
-                move(scr_csr_y, scr_csr_x);
-                break;
-            }
-        }
-        break;
     case KEY_HOME:
-    case WIN64_KEY_HOME: // 노트북 홈키
-
+    case WIN64_KEY_HOME:
         break;
     case WIN64_KEY_END:
     case KEY_END:
