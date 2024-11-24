@@ -93,7 +93,7 @@ void calc_last_line_change_position(GapBuffer* gap_buffer, int position, int* x,
     const int target = position;
     int target_x = 0;
     int target_y = 0;
-    for (int i = 0; i < target - 1; i++)
+    for (int i = 0; i < target-1; i++)
     {
         target_x++;
         if (target_x >= COLS || gap_buffer->char_buffer[i] == '\n') {
