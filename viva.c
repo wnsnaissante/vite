@@ -45,46 +45,6 @@ static int scr_csr_y = 0;
 static int gap_buffer_cursor_1d_position = 0;
 static int total_lines = 0;
 
-
-void move_cursor_left(GapBuffer* gap_buffer, int* position, int* scr_x, int* scr_y) {
-    // 현재 커서가 줄의 첫 번째 위치인지 확인
-    if (*scr_x == 0) {
-        // 이전 줄의 마지막 문자 위치 찾기
-        int last_line_start = 0;
-        for (int i = *position - 1; i >= 0; i--) {
-            if (gap_buffer->char_buffer[i] == '\n') {
-                last_line_start = i + 1;
-                break;
-            }
-        }
-
-        // 이전 줄의 마지막 문자 찾기
-        int prev_line_end = *position - 1;
-        for (int i = last_line_start; i < *position; i++) {
-            if (gap_buffer->char_buffer[i] == '\n') {
-                prev_line_end = i - 1;
-                break;
-            }
-        }
-
-        // 커서 이동
-        *position = prev_line_end;
-        *scr_x = (prev_line_end - last_line_start) % COLS; // 이전 줄 마지막 문자 X 위치
-        *scr_y -= 1; // 이전 줄로 이동
-        if (*scr_y < 0) *scr_y = 0; // 화면 최상단 초과 방지
-    } else {
-        // 현재 줄 내부에서 이동
-        *position -= 1;
-        *scr_x -= 1;
-    }
-
-    // 화면 상단 조정
-    if (*scr_y < 0) {
-        *scr_y = 0;
-    }
-    move(*scr_y, *scr_x); // 커서 이동
-}
-
 void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
     draw_default_message_bar(message_window);
     draw_status_bar(COLS, file_name, file_extension, scr_csr_y, get_total_lines(gap_buffer), status_window);
@@ -149,75 +109,12 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
     case WIN64_KEY_CTRL_F: // Ctrl-F
         break;
     case KEY_UP:
-
         break;
     case KEY_DOWN:
-
         break;
     case KEY_LEFT:
-        if (scr_csr_y > 0) {
-            if (scr_csr_x > 0) {
-                scr_csr_x--;
-                gap_buffer_cursor_1d_position--;
-                move(scr_csr_y, scr_csr_x);
-            } else if (scr_csr_x == 0) {
-                if (gap_buffer->char_buffer[gap_buffer_cursor_1d_position-1] == '\n') {
-                    calc_last_line_change_position(gap_buffer, gap_buffer_cursor_1d_position, &scr_csr_x, &scr_csr_y);
-                    move(scr_csr_y, scr_csr_x);
-                    gap_buffer_cursor_1d_position--;
-                    break;
-                } else {
-                    move_cursor_left(gap_buffer, &gap_buffer_cursor_1d_position, &scr_csr_x, &scr_csr_y);
-                    move(scr_csr_y, scr_csr_x);
-                    break;
-                }
-            }
-        } else if (scr_csr_y <= 0) {
-            if(scr_csr_x > 0) {
-                scr_csr_x--;
-                gap_buffer_cursor_1d_position--;
-                move(scr_csr_y, scr_csr_x);
-            }
-        }
         break;
-
-        case KEY_RIGHT:
-            if (gap_buffer_cursor_1d_position < gap_buffer->size) {
-                if (gap_buffer_cursor_1d_position == gap_buffer->gap_start) {
-                    // 갭 영역 건너뛰기
-                    gap_buffer_cursor_1d_position = gap_buffer->gap_end + 1;
-
-                    // 커서 위치 갱신
-                    calc_next_line_change_position(gap_buffer, gap_buffer_cursor_1d_position, &scr_csr_x, &scr_csr_y);
-                    move(scr_csr_y, scr_csr_x);
-                } else {
-                    // 현재 문자 확인
-                    char current_char = gap_buffer->char_buffer[gap_buffer_cursor_1d_position];
-
-                    // 줄바꿈 문자인 경우 처리
-                    if (current_char == '\n') {
-                        scr_csr_x = 0;
-                        scr_csr_y++;
-                    } else if (scr_csr_x >= COLS - 1) {
-                        // 줄 끝을 넘어가는 경우
-                        scr_csr_x = 0;
-                        scr_csr_y++;
-                    } else {
-                        // 일반 문자 이동
-                        scr_csr_x++;
-                    }
-
-                    gap_buffer_cursor_1d_position++;
-
-                    // 화면 스크롤 처리
-                    if (scr_csr_y >= LINES - 2) {
-                        scr_csr_y = LINES - 3;
-                        wscrl(text_window, 1);
-                    }
-
-                    move(scr_csr_y, scr_csr_x);
-                }
-            }
+    case KEY_RIGHT:
         break;
     case KEY_BACKSPACE:
     case WIN64_KEY_BACKSPACE:

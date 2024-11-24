@@ -15,7 +15,7 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
     size_t previous_size = gap_buffer->size;
 
     // Align Memory to multiples of 4
-    size_t expanded_size = (int)(previous_size * 1.25) + 3 & ~3;
+    size_t expanded_size = ((int)(previous_size * 1.25) + 3) & ~3;
 
     // Allocate new buffer
     char* new_buffer = (char*)realloc(gap_buffer->char_buffer, expanded_size * sizeof(char));
