@@ -44,7 +44,9 @@ static int base_scr_csr_x = 0;
 static int base_scr_csr_y = 0;
 static int gap_buffer_cursor_1d_position = 0;
 static int total_lines = 0;
-static int first_line = 0;
+static int scroll_offset = 0;
+static int relative_x = 0;
+static int relative_y = 0;
 
 void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
     draw_default_message_bar(message_window);
@@ -224,17 +226,13 @@ int main(int argc, char* argv[]) {
     }
 
     while (1) {
-        // if (scr_csr_y > LINES - 2) {
-        //     while (scr_csr_y < LINES - 2) {
-        //         scr_csr_y--;
-        //         wmove(text_window, LINES - 2, scr_csr_x);
-        //         wrefresh(text_window);
-        //     }
-        // }
+        calibration_cursor_position(gap_buffer, &base_scr_csr_x, &base_scr_csr_y, &relative_x, &relative_y, &scroll_offset);
+        move(relative_y, relative_x);
         handle_key_(text_window, status_window, message_window, gap_buffer);
-        draw_status_bar(COLS, file_name, file_extension, base_scr_csr_y, base_scr_csr_x, status_window);
+        draw_status_bar(COLS, file_name, file_extension, relative_y, relative_x, status_window);
         //draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
         // draw_text_area(text_window, gap_buffer);
+        werase(text_window);
         draw_text_area(text_window,gap_buffer);
         refresh_screen(text_window, status_window, message_window);
     }
