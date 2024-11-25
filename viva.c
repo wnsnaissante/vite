@@ -40,48 +40,15 @@ static char file_extension[10];
 
 
 static _Bool is_saved = 0;
-static int scr_csr_x = 0;
-static int scr_csr_y = 0;
+static int base_scr_csr_x = 0;
+static int base_scr_csr_y = 0;
 static int gap_buffer_cursor_1d_position = 0;
 static int total_lines = 0;
-
-
-void move_cursor_left(GapBuffer* gap_buffer, int* position, int* scr_x, int* scr_y) {
-    if (*scr_x == 0) {
-        int last_line_start = 0;
-        for (int i = *position - 1; i >= 0; i--) {
-            if (gap_buffer->char_buffer[i] == '\n') {
-                last_line_start = i + 1;
-                break;
-            }
-        }
-
-        int prev_line_end = *position - 1;
-        for (int i = last_line_start; i < *position; i++) {
-            if (gap_buffer->char_buffer[i] == '\n') {
-                prev_line_end = i - 1;
-                break;
-            }
-        }
-
-        *position = prev_line_end;
-        *scr_x = (prev_line_end - last_line_start) % COLS;
-        *scr_y -= 1;
-        if (*scr_y < 0) *scr_y = 0;
-    } else {
-        *position -= 1;
-        *scr_x -= 1;
-    }
-
-    if (*scr_y < 0) {
-        *scr_y = 0;
-    }
-    move(*scr_y, *scr_x);
-}
+static int first_line = 0;
 
 void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
     draw_default_message_bar(message_window);
-    draw_status_bar(COLS, file_name, file_extension, scr_csr_y, get_total_lines(gap_buffer), status_window);
+    draw_status_bar(COLS, file_name, file_extension, base_scr_csr_y, get_total_lines(gap_buffer), status_window);
     refresh();
     int ch = getch();
     switch (ch) {
@@ -105,7 +72,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
             }
         }
         break;
-    case WIN64_KEY_CTRL_S: // Ctrl-S
+    case WIN64_KEY_CTRL_S:
         if (strlen(file_name) == 0 && strlen(file_extension) == 0) {
             werase(message_window);
             waddstr(message_window, "Type filename.extension");
@@ -140,19 +107,42 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
         draw_save_complete_message_bar(message_window);
         wrefresh(message_window);
         break;
-    case WIN64_KEY_CTRL_F: // Ctrl-F
+    case WIN64_KEY_CTRL_F:
         break;
     case KEY_UP:
         break;
     case KEY_DOWN:
         break;
     case KEY_LEFT:
+        gap_buffer_cursor_1d_position--;
+        calc_cursor_position(gap_buffer , &gap_buffer_cursor_1d_position, &base_scr_csr_x, &base_scr_csr_y);
+        break;
+    case KEY_RIGHT:
+        gap_buffer_cursor_1d_position++;
+        calc_cursor_position(gap_buffer , &gap_buffer_cursor_1d_position, &base_scr_csr_x, &base_scr_csr_y);
         break;
     case KEY_HOME:
     case WIN64_KEY_HOME:
+        while (gap_buffer->char_buffer[gap_buffer_cursor_1d_position] != '\n') {
+            if (gap_buffer_cursor_1d_position<=0) {
+                gap_buffer_cursor_1d_position = -1;
+                break;
+            }
+            gap_buffer_cursor_1d_position--;
+        }
+        gap_buffer_cursor_1d_position++;
+        calc_cursor_position(gap_buffer, &gap_buffer_cursor_1d_position, &base_scr_csr_x, &base_scr_csr_y);
         break;
     case WIN64_KEY_END:
     case KEY_END:
+        while (gap_buffer->char_buffer[gap_buffer_cursor_1d_position] != '\n'&&
+           gap_buffer_cursor_1d_position < gap_buffer->gap_start + gap_buffer->size) {
+            gap_buffer_cursor_1d_position++;
+        }
+        if (gap_buffer->char_buffer[gap_buffer_cursor_1d_position] == '\n') {
+            gap_buffer_cursor_1d_position++;
+        }
+        calc_cursor_position(gap_buffer, &gap_buffer_cursor_1d_position, &base_scr_csr_x, &base_scr_csr_y);
         break;
     case KEY_NPAGE:
     case WIN64_KEY_PAGE_DOWN:
@@ -167,41 +157,25 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
         wrefresh(text_window);
         wmove(text_window, LINES - 2, 0);
         break;
+    case KEY_BACKSPACE:
+    case WIN64_KEY_BACKSPACE:
+        if (gap_buffer_cursor_1d_position > 0) {
+            delete_char(gap_buffer, gap_buffer_cursor_1d_position);
+            gap_buffer_cursor_1d_position--;
+            calc_cursor_position(gap_buffer, &gap_buffer_cursor_1d_position, &base_scr_csr_x, &base_scr_csr_y);
+            wmove(text_window, base_scr_csr_y, base_scr_csr_x);
+            break;
+        } else {
+            gap_buffer_cursor_1d_position = 0;
+            break;
+        }
+
     default:
         is_saved = 0;
         insert_char(gap_buffer, ch, gap_buffer_cursor_1d_position);
         gap_buffer_cursor_1d_position++;
-        if (ch == '\n') {
-            total_lines++;
-        }
-        if (scr_csr_x == COLS) {
-            scr_csr_x = 0;
-            wprintw(text_window, "\n");
-            scr_csr_y++;
-            total_lines++;
-        }
-
-        if (ch == 10) {
-            scr_csr_x = 0;
-            if (scr_csr_y <= LINES - 2)
-            {
-                scr_csr_y++;
-            }
-            else {
-                scroll(text_window);
-            }
-
-            move(scr_csr_y, scr_csr_x);
-        }
-        else {
-            scr_csr_x++;
-            move(scr_csr_y, scr_csr_x);
-        }
-        if (scr_csr_y == LINES - 2) {
-            scr_csr_y--;
-            move(scr_csr_y, scr_csr_x);
-        }
-        move(scr_csr_y, scr_csr_x);
+        calc_cursor_position(gap_buffer, &gap_buffer_cursor_1d_position, &base_scr_csr_x, &base_scr_csr_y);
+        wmove(text_window, base_scr_csr_y, base_scr_csr_x);
         break;
     }
 }
@@ -211,6 +185,16 @@ int main(int argc, char* argv[]) {
     cbreak();
     noecho();
     keypad(stdscr, TRUE);
+
+    // Text Area
+    WINDOW* text_window = newwin(LINES - 2, COLS, 0, 0);
+    scrollok(text_window, TRUE);
+
+    // Status Area
+    WINDOW* status_window = newwin(1, COLS, LINES - 2, 0);
+
+    // Message Area
+    WINDOW* message_window = newwin(1, COLS, LINES - 2 + 1, 0);
 
     filename_buffer = create_gap_buffer(FILENAME_MAX);
 
@@ -227,46 +211,31 @@ int main(int argc, char* argv[]) {
 			strcpy(file_extension, "\0");
         }
         gap_buffer_cursor_1d_position = open_file(gap_buffer, file_name, file_extension);
-        calc_opening_position(gap_buffer, &scr_csr_x, &scr_csr_y, gap_buffer_cursor_1d_position);
+        calc_opening_position(gap_buffer, &base_scr_csr_x, &base_scr_csr_y, gap_buffer_cursor_1d_position);
+        // calc_cursor_position(gap_buffer, &gap_buffer_cursor_1d_position, &scr_csr_x, &scr_csr_y);
         total_lines = get_total_lines(gap_buffer);
         free(filename_buffer);
     }
     else {
         strcpy(file_name, "\0");
 		strcpy(file_extension, "\0");
+        calc_cursor_position(gap_buffer, &gap_buffer_cursor_1d_position, &base_scr_csr_x, &base_scr_csr_y);
+        wmove(text_window, base_scr_csr_y, base_scr_csr_x);
     }
 
-
-    // Text Area
-    WINDOW* text_window = newwin(LINES - 2, COLS, 0, 0);
-
-    // Status Area
-    WINDOW* status_window = newwin(1, COLS, LINES - 2, 0);
-
-    // Message Area
-    WINDOW* message_window = newwin(1, COLS, LINES - 2 + 1, 0);
-    scrollok(text_window, TRUE);
-
     while (1) {
-        if (scr_csr_y > LINES - 2) {
-            while (scr_csr_y < LINES - 2) {
-                scr_csr_y--;
-                wmove(text_window, LINES - 2, scr_csr_x);
-                wrefresh(text_window);
-            }
-        }
+        // if (scr_csr_y > LINES - 2) {
+        //     while (scr_csr_y < LINES - 2) {
+        //         scr_csr_y--;
+        //         wmove(text_window, LINES - 2, scr_csr_x);
+        //         wrefresh(text_window);
+        //     }
+        // }
         handle_key_(text_window, status_window, message_window, gap_buffer);
-        if (scr_csr_y == LINES - 2) {
-            scroll(text_window);
-            scr_csr_y--;
-            move(scr_csr_y, scr_csr_x);
-            wrefresh(text_window);
-        }
-
-        werase(text_window);
-        draw_status_bar(COLS, file_name, file_extension, scr_csr_y, total_lines, status_window);
+        draw_status_bar(COLS, file_name, file_extension, base_scr_csr_y, base_scr_csr_x, status_window);
         //draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
-        draw_text_area(text_window, gap_buffer);
+        // draw_text_area(text_window, gap_buffer);
+        draw_text_area(text_window,gap_buffer);
         refresh_screen(text_window, status_window, message_window);
     }
     return 0;
