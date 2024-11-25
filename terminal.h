@@ -14,5 +14,6 @@ void move_cursor(WINDOW* text_window, int* scr_csr_x, int* scr_csr_y);
 void calc_opening_position(const GapBuffer* gap_buffer, int* scr_csr_x, int* scr_csr_y, int gap_start);
 void draw_save_complete_message_bar(WINDOW* message_window);
 void calc_cursor_position(GapBuffer* gap_buffer, int* gap_buffer_cursor_position, int* scr_csr_x, int* scr_csr_y);
+void calibration_cursor_position(GapBuffer* gap_buffer, int* base_scr_csr_x, int* base_scr_csr_y, int* relative_x, int* relative_y, int* scroll_offset);
 
 #endif // TERMINAL_H
