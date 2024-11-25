@@ -110,3 +110,30 @@ void calc_opening_position(const GapBuffer* gap_buffer, int* scr_csr_x, int* scr
         *scr_csr_y = LINES-2;
     }
 }
+
+void calc_cursor_position(GapBuffer* gap_buffer, int* gap_buffer_cursor_position, int* scr_csr_x, int* scr_csr_y) {
+    int y_pos = 0;
+    int chars_in_current_line = 0;
+    int current_line_start = 0;
+
+    for (int i = 0; i < *gap_buffer_cursor_position; i++) {
+        if (gap_buffer->char_buffer[i] == '\n') {
+            y_pos += (chars_in_current_line / COLS) + 1;
+            chars_in_current_line = 0;
+            current_line_start = i + 1;
+        } else {
+            chars_in_current_line++;
+        }
+    }
+
+    int current_line_length = *gap_buffer_cursor_position - current_line_start;
+    y_pos += current_line_length / COLS;
+    int x_pos = current_line_length % COLS;
+    if (*gap_buffer_cursor_position > 0 &&
+        gap_buffer->char_buffer[*gap_buffer_cursor_position - 1] == '\n') {
+        x_pos = 0;
+        }
+
+    *scr_csr_x = x_pos;
+    *scr_csr_y = y_pos;
+}
