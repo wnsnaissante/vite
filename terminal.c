@@ -107,7 +107,7 @@ void calc_opening_position(const GapBuffer* gap_buffer, int* scr_csr_x, int* scr
     }
 
     if (*scr_csr_y > LINES-2) {
-        *scr_csr_y = LINES-2;
+        *scr_csr_y = LINES-3;
     }
 }
 
@@ -136,4 +136,17 @@ void calc_cursor_position(GapBuffer* gap_buffer, int* gap_buffer_cursor_position
 
     *scr_csr_x = x_pos;
     *scr_csr_y = y_pos;
+}
+
+void calibration_cursor_position(GapBuffer* gap_buffer, int* base_scr_csr_x, int* base_scr_csr_y, int* relative_x, int* relative_y, int* scroll_offset) {
+    if (*base_scr_csr_y >= *scroll_offset + LINES - 2) {
+        *scroll_offset = *base_scr_csr_y - (LINES - 3);
+    } else if (*base_scr_csr_y < *scroll_offset) {
+        *scroll_offset = *base_scr_csr_y;
+    }
+    *relative_y = *base_scr_csr_y - *scroll_offset;
+    *relative_x = *base_scr_csr_x;
+    if (*relative_y >= LINES-2) {
+        *relative_y = *relative_y - LINES-3;
+    }
 }
