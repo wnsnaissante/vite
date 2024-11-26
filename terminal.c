@@ -1,15 +1,25 @@
 #include "terminal.h"
 
-void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer) {
-    if (gap_buffer->gap_start > 0) {
-        waddnstr(text_window, gap_buffer->char_buffer, gap_buffer->gap_start);
+void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer, int base_pos) {
+    int start_pos = base_pos;
+    int end_pos = base_pos + ((LINES - 2) * COLS);
+
+    if (start_pos < gap_buffer->gap_start) {
+        int output_len = gap_buffer->gap_start - start_pos;
+        if (output_len > 0) {
+            waddnstr(text_window, gap_buffer->char_buffer + start_pos, output_len);
+        }
+        start_pos = gap_buffer->gap_start;
     }
-    if (gap_buffer->gap_end < gap_buffer->size - 1) {
-        waddnstr(text_window,
-            gap_buffer->char_buffer + gap_buffer->gap_end + 1,
-            gap_buffer->size - gap_buffer->gap_end - 1);
+
+    if (end_pos > gap_buffer->gap_end) {
+        int output_len = end_pos - gap_buffer->gap_end - 1;
+        if (output_len > 0) {
+            waddnstr(text_window, gap_buffer->char_buffer + gap_buffer->gap_end + 1, output_len);
+        }
     }
 }
+
 
 void draw_status_bar(int width, char* file_name, char* file_extension, int current_line, int total_lines, WINDOW* status_window) {
     start_color();
@@ -92,25 +102,6 @@ void refresh_screen(WINDOW* text_window, WINDOW* status_window, WINDOW* message_
 	wrefresh(message_window);
 }
 
-void calc_opening_position(const GapBuffer* gap_buffer, int* scr_csr_x, int* scr_csr_y, int gap_start) {
-    for (int i = 0; i < gap_start; i++) {
-        if (gap_buffer->char_buffer[i] == '\n') {
-            (*scr_csr_y)++;
-            *scr_csr_x = 0;
-        } else {
-            (*scr_csr_x)++;
-            if (*scr_csr_x >= COLS) {
-                *scr_csr_x = 0;
-                (*scr_csr_y)++;
-            }
-        }
-    }
-
-    if (*scr_csr_y > LINES-2) {
-        *scr_csr_y = LINES-3;
-    }
-}
-
 void calc_cursor_position(GapBuffer* gap_buffer, int* gap_buffer_cursor_position, int* scr_csr_x, int* scr_csr_y) {
     int y_pos = 0;
     int chars_in_current_line = 0;
@@ -138,15 +129,35 @@ void calc_cursor_position(GapBuffer* gap_buffer, int* gap_buffer_cursor_position
     *scr_csr_y = y_pos;
 }
 
-void calibration_cursor_position(GapBuffer* gap_buffer, int* base_scr_csr_x, int* base_scr_csr_y, int* relative_x, int* relative_y, int* scroll_offset) {
-    if (*base_scr_csr_y >= *scroll_offset + LINES - 2) {
-        *scroll_offset = *base_scr_csr_y - (LINES - 3);
-    } else if (*base_scr_csr_y < *scroll_offset) {
-        *scroll_offset = *base_scr_csr_y;
+void calculate_screen_1dim_pos(GapBuffer* gap_buffer, int base_1dim_pos, int crnt_screen_cursor_rel_1dim_pos, int* calculated_screen_cursor_1dim_pos) {
+    int relative_pos = base_1dim_pos + crnt_screen_cursor_rel_1dim_pos;
+    int current_line_chars = 0;
+    int total_cols = 0;
+
+    for (int i = base_1dim_pos; i < relative_pos; i++) {
+        char current_char = gap_buffer->char_buffer[i];
+
+        if (current_line_chars >= COLS) {
+            total_cols += COLS;
+            current_line_chars = 0;
+        }
+
+        if (current_char == '\n') {
+            total_cols += COLS;
+            current_line_chars = 0;
+        } else {
+            current_line_chars++;
+        }
     }
-    *relative_y = *base_scr_csr_y - *scroll_offset;
-    *relative_x = *base_scr_csr_x;
-    if (*relative_y >= LINES-2) {
-        *relative_y = *relative_y - LINES-3;
+
+    if (current_line_chars > 0) {
+
+        if (current_line_chars >= COLS) {
+            total_cols += COLS;
+        } else {
+            total_cols += current_line_chars;
+        }
     }
+
+    *calculated_screen_cursor_1dim_pos = total_cols;
 }
