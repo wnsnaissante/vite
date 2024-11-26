@@ -146,7 +146,7 @@ void open_file(GapBuffer *gap_buffer, const char *filename, const char *file_ext
     FILE* file = fopen(target, "r");
     if (file == NULL) {
         perror("ERR! failed to open file");
-        return 0;
+        exit(404);
     }
     char parsed_char;
     int position = 0;
