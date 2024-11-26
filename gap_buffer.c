@@ -91,14 +91,25 @@ void delete_char(GapBuffer* gap_buffer, int position) {
 
 int get_total_lines(GapBuffer* gap_buffer) {
     int total_lines = 1;
-    for (int i = 0; i < gap_buffer->size; i++)
-    {
-        if (gap_buffer->char_buffer[i] == '\n') {
+    int current_col = 0;
+
+    for (int i = 0; i < gap_buffer->size; i++) {
+        char parsed_char = gap_buffer->char_buffer[i];
+        if (parsed_char == '\n') {
             total_lines++;
+            current_col = 0;
+        } else if (parsed_char != '\0') {
+            current_col++;
+            if (current_col >= COLS) {
+                total_lines++;
+                current_col = 0;
+            }
         }
     }
+
     return total_lines;
 }
+
 
 void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
     char target[FILENAME_MAX];
@@ -123,9 +134,9 @@ void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_
     fclose(file);
 }
 
-int open_file(GapBuffer* gap_buffer, const char* filename, const char* file_extension) {
+void open_file(GapBuffer *gap_buffer, const char *filename, const char *file_extension) {
     char target[FILENAME_MAX];
-    if (file_extension != "\0") {
+    if (file_extension != '\0') {
         snprintf(target, sizeof(target), "%s%s", filename, file_extension);
     }
     else {
@@ -135,7 +146,7 @@ int open_file(GapBuffer* gap_buffer, const char* filename, const char* file_exte
     FILE* file = fopen(target, "r");
     if (file == NULL) {
         perror("ERR! failed to open file");
-        return;
+        return 0;
     }
     char parsed_char;
     int position = 0;
@@ -144,5 +155,4 @@ int open_file(GapBuffer* gap_buffer, const char* filename, const char* file_exte
         position++;
     }
     fclose(file);
-    return gap_buffer->gap_start;
 }
