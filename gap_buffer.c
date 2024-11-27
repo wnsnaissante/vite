@@ -19,6 +19,7 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
 
     // Allocate new buffer
     char* new_buffer = (char*)realloc(gap_buffer->char_buffer, expanded_size * sizeof(char));
+    memset(new_buffer+previous_size, '\0', (expanded_size-previous_size) * sizeof(char));
     gap_buffer->char_buffer = new_buffer;
 
     gap_buffer->size = expanded_size;
@@ -27,11 +28,19 @@ GapBuffer* resize_gap_buffer(GapBuffer* gap_buffer) {
     return gap_buffer;
 }
 
-
 GapBuffer* move_gap_left(GapBuffer* gap_buffer, int position) {
     int shift_distance = gap_buffer->gap_start - position;
+
     if (shift_distance > 0) {
-        memmove(gap_buffer->char_buffer + gap_buffer->gap_end - shift_distance + 1, gap_buffer->char_buffer + gap_buffer->gap_start - shift_distance, shift_distance);
+        if (position < 0 || position > gap_buffer->gap_start) {
+            return gap_buffer;
+        }
+
+        memmove(
+            gap_buffer->char_buffer + gap_buffer->gap_end - shift_distance,
+            gap_buffer->char_buffer + gap_buffer->gap_start - shift_distance,
+            shift_distance
+        );
 
         gap_buffer->gap_start -= shift_distance;
         gap_buffer->gap_end -= shift_distance;
@@ -40,12 +49,18 @@ GapBuffer* move_gap_left(GapBuffer* gap_buffer, int position) {
     return gap_buffer;
 }
 
-
 GapBuffer* move_gap_right(GapBuffer* gap_buffer, int position) {
     int shift_distance = position - gap_buffer->gap_start;
-
     if (shift_distance > 0) {
-        memmove(gap_buffer->char_buffer + gap_buffer->gap_start, gap_buffer->char_buffer + gap_buffer->gap_end + 1, shift_distance);
+        if (position < gap_buffer->gap_start || position >= gap_buffer->size) {
+            return gap_buffer;
+        }
+
+        memmove(
+            gap_buffer->char_buffer + gap_buffer->gap_start,
+            gap_buffer->char_buffer + gap_buffer->gap_end + 1,
+            shift_distance
+        );
 
         gap_buffer->gap_start += shift_distance;
         gap_buffer->gap_end += shift_distance;
@@ -85,7 +100,7 @@ void delete_char(GapBuffer* gap_buffer, int position) {
 
     if (gap_buffer->gap_start > 0) {
         gap_buffer->gap_start--;
-        memset(&gap_buffer->char_buffer[gap_buffer->gap_start], (char)0, sizeof(char) * 1);
+        memset(&gap_buffer->char_buffer[gap_buffer->gap_start], (char)'\0', sizeof(char) * 1);
     }
 }
 
@@ -122,7 +137,6 @@ void save_to_file(GapBuffer* gap_buffer, const char* filename, const char* file_
 
     FILE* file = fopen(target, "w");
     if (file == NULL) {
-        perror("ERR! failed to open file");
         return;
     }
 
@@ -145,7 +159,6 @@ void open_file(GapBuffer *gap_buffer, const char *filename, const char *file_ext
 
     FILE* file = fopen(target, "r");
     if (file == NULL) {
-        perror("ERR! failed to open file");
         exit(404);
     }
     char parsed_char;
