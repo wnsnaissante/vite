@@ -188,7 +188,9 @@ void draw_find_info_status_bar(WINDOW* status_window) {
     free(status);
 }
 
-void draw_find_result_message(WINDOW* message_window, GapBuffer* word_buffer, int crnt_position, int results) {
+
+// WILL BE DEPRECATED.
+void draw_find_result_message(WINDOW* message_window, GapBuffer* word_buffer, int scr_x, int scr_y) {
     char* message = (char*)malloc(COLS * sizeof(char));
     size_t word_length = 0;
     for(int i = 0; i < word_buffer->size; i++) {
@@ -198,7 +200,7 @@ void draw_find_result_message(WINDOW* message_window, GapBuffer* word_buffer, in
     }
     char* word = (char*)calloc(word_length, sizeof(char));
     strncpy(word, word_buffer->char_buffer, word_length);
-    snprintf(message, COLS,"Search:%s %*s %d / %d",word, COLS-strlen(word)-25, "", word_length, results);
+    snprintf(message, COLS,"Search:%s %*s %d / %d",word, COLS-strlen(word)-25, "", scr_x, scr_y);
     mvwprintw(message_window, 0, 0, message);
     free(message);
     free(word);
