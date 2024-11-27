@@ -56,6 +56,10 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
     switch (ch) {
         case KEY_CTRL_Q:
             if (strlen(gap_buffer->char_buffer) == 0 || is_saved == 1 || is_recently_opened == 1) {
+                nocbreak();
+                echo();
+                endwin();
+                keypad(stdscr, FALSE);
                 #if defined(__APPLE__) || defined(__linux__)
                     system("stty ixon");
                 #endif
