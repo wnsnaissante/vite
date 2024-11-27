@@ -30,6 +30,7 @@
 
 
 static GapBuffer* filename_buffer;
+static GapBuffer* word_buffer;
 
 static char file_name[100];
 static char file_extension[10];
@@ -47,7 +48,7 @@ static int scr_y_pos_2dim = 0;
 static int total_lines = 0;
 
 
-void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
+void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_buffer) {
     draw_default_message_bar(message_window);
     draw_status_bar(COLS, file_name, file_extension, scr_y_pos_2dim, get_total_lines(gap_buffer), status_window);
     refresh();
@@ -110,17 +111,35 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
             wrefresh(message_window);
             break;
         case KEY_CTRL_F:
-            char* status = (char*)malloc(COLS * sizeof(char));
-            snprintf(status, COLS, "Enter word, %*s <-Prev     Next->",COLS-31,"");
+            uint_fast8_t position = 0;
+            werase(status_window);
+            draw_find_default_status_bar(status_window);
+            wrefresh(status_window);
+
+            werase(message_window);
             while(1) {
-                start_color();
-                init_pair(1, COLOR_BLACK, COLOR_WHITE);
-                wattron(status_window, COLOR_PAIR(1));
-                werase(status_window);
-                mvwprintw(status_window, 0, 0, "%s", status);
-                wattroff(status_window, COLOR_PAIR(1));
-                wrefresh(status_window);
+                char ch = getch();
+                if (ch == KEY_BACKSPACE || ch == WIN64_KEY_BACKSPACE) {
+                    delete_char(word_buffer, position);
+                    position--;
+                } else if (ch == '\n') {
+                    break;
+                } else {
+                    insert_char(word_buffer, ch, position++);
+                }
+                waddch(message_window, ch);
+                wrefresh(message_window);
             }
+            werase(status_window);
+            draw_find_info_status_bar(status_window);
+            wrefresh(status_window);
+
+            werase(message_window);
+            draw_find_result_message(message_window, word_buffer, 0,0);
+            wrefresh(message_window);
+        while (1) {
+
+        }
             break;
         case KEY_UP:
             break;
@@ -219,6 +238,7 @@ int main(int argc, char* argv[]) {
     filename_buffer = create_gap_buffer(FILENAME_MAX);
 
     GapBuffer* gap_buffer = create_gap_buffer(1024);
+    word_buffer = create_gap_buffer(COLS);
     if (argc > 1)   // get file name and its extension from parameter
     {
         char* original_file_name = argv[1];
@@ -241,7 +261,7 @@ int main(int argc, char* argv[]) {
 
     while (1) {
         werase(text_window);
-        handle_key_(text_window, status_window, message_window, gap_buffer);
+        handle_key_(status_window, message_window, gap_buffer);
         calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
         if(gap_buffer_cursor_1dim_position < base_1dim_pos) {
             base_1dim_pos = 0;
