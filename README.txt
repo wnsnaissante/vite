@@ -11,7 +11,7 @@ Known Bug
 7. Print garbage character
 8. MOTD screen doesn't print when program started.
 
-TODO
+!TODO
 1. Fix Memory leaks, overhead
 2. Fix malfunctions
 3. Optimization
@@ -21,10 +21,11 @@ TODO
 Project Initiation date : 2024/09/02
 ---  
 Tested on
-1. Windows 11, gcc (MinGW32 GCC-6.3.0-1) 6.3.0  // Has potential for bugs due to using 32bit. anyway i used it :(
+1. Windows 11, gcc (MinGW32 GCC-6.3.0-1) 6.3.0  // Has potential for bugs due to using 32bit. anyway i used it lol XD
 2. Windows 11, Visual Studio 2022 MSVC 17.0
 3. VM macOS Sonoma (version 14.5), Apple clang version 15.0.0 (clang-1500.3.9.4) Target: x86_64-apple-darwin23.5.0 POSIX
-4. WSL Ubuntu 22.04.3 LTS (GNU/Linux 5.15.167.4-microsoft-standard-WSL2 x86_64)
+4. WSL Ubuntu 22.04.3 LTS (GNU/Linux 5.15.167.4-microsoft-standard-WSL2 x86_64), gcc version 11.4.0 (Ubuntu 11.4.0-1ubuntu1~22.04), Target: x86_64-linux-gnu, POSIX
+
 ---  
 Features
 5. Make a new file
@@ -34,5 +35,5 @@ Features
 8. Text Edit
 9. Move             // WIP
 10. Save
-8. Search           // TODO
+8. Search           // WIP
 11. Exit
