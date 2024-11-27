@@ -27,4 +27,7 @@ void draw_save_complete_message_bar(WINDOW* message_window);
 int calc_render_start_index(GapBuffer* gap_buffer, int current_cursor_row);
 void calculate_screen_1dim_pos(GapBuffer* gap_buffer, int base_1dim_pos, int crnt_screen_cursor_rel_1dim_pos, int* calculated_screen_cursor_1dim_pos);
 void find_word_position(GapBuffer* gap_buffer, GapBuffer* word_buffer, int* gap_buffer_cursor_position, WINDOW* message_window, WINDOW* status_window);
+void draw_find_default_status_bar(WINDOW* status_window);
+void draw_find_info_status_bar(WINDOW* status_window);
+void draw_find_result_message(WINDOW* message_window, GapBuffer* word_buffer, int crnt_position, int results);
 #endif // TERMINAL_H
