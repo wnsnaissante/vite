@@ -21,16 +21,8 @@
 
 #define _CRT_SECURE_NO_WARNINGS
 
-#define WIN64_KEY_HOME 449
-#define WIN64_KEY_END 455
-#define WIN64_KEY_BACKSPACE 8
-#define KEY_CTRL_Q 17
-#define KEY_CTRL_S 19
-#define KEY_CTRL_F 6
-#define WIN64_KEY_PAGE_UP 451
-#define WIN64_KEY_PAGE_DOWN 457
-#define MAC_BACKSPACE 127
-#define MAC_CTRL_F 6
+
+#include <stdint.h>
 
 #include "terminal.h"
 #include "gap_buffer.h"
@@ -61,136 +53,146 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
     refresh();
     int ch = getch();
     switch (ch) {
-    case KEY_CTRL_Q:
-        if (strlen(gap_buffer->char_buffer) == 0 || is_saved == 1 || is_recently_opened == 1) {
-            exit(0);
-            break;
-        }
-        else {
-            draw_quit_message_bar(message_window);
-            wrefresh(message_window);
-            ch = getch();
-            if (ch == 17) {
+        case KEY_CTRL_Q:
+            if (strlen(gap_buffer->char_buffer) == 0 || is_saved == 1 || is_recently_opened == 1) {
                 exit(0);
-            }
-            else {
-                werase(message_window);
-                draw_default_message_bar(message_window);
-                wrefresh(message_window);
                 break;
             }
-        }
-        break;
-    case KEY_CTRL_S:
-        if (strlen(file_name) == 0 && strlen(file_extension) == 0) {
-            werase(message_window);
-            waddstr(message_window, "Type filename.extension");
-            wrefresh(message_window);
-            char input_char;
-            int position = 0;
-            do {
-                input_char = getch();
-                if (input_char != '\n') {
-                    if (input_char == KEY_BACKSPACE || input_char == WIN64_KEY_BACKSPACE) {
-                        delete_char(filename_buffer, position);
-                        position--;
-                    }
-                    insert_char(filename_buffer, input_char, position++);
-                    werase(message_window);
-                    waddstr(message_window, filename_buffer->char_buffer);
-                    wrefresh(message_window);
-                }
-            } while (input_char != '\n');
-            if (strpbrk(filename_buffer->char_buffer, ".") != NULL) {
-                strcpy(file_extension, strpbrk(filename_buffer->char_buffer, ".")); // get file extension
-                strcpy(file_name, strtok(filename_buffer->char_buffer, ".")); // get file name
-            }
             else {
-                strcpy(file_name, filename_buffer->char_buffer);
-                strcpy(file_extension, "\0");
+                draw_quit_message_bar(message_window);
+                wrefresh(message_window);
+                ch = getch();
+                if (ch == 17) {
+                    exit(0);
+                }
+                else {
+                    werase(message_window);
+                    draw_default_message_bar(message_window);
+                    wrefresh(message_window);
+                    break;
+                }
             }
-        }
-        is_saved = 1;
-        if (is_recently_opened != 0) {is_recently_opened = 0;}
-        save_to_file(gap_buffer, file_name, file_extension);
-        werase(message_window);
-        draw_save_complete_message_bar(message_window);
-        wrefresh(message_window);
-        break;
-    case KEY_CTRL_F:
-        break;
-    case KEY_UP:
-        break;
-    case KEY_DOWN:
-        break;
-    case KEY_LEFT:
-        gap_buffer_cursor_1dim_position--;
-        screen_1dim_rel_pos--;
-        calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
-        break;
-    case KEY_RIGHT:
-        gap_buffer_cursor_1dim_position++;
-        screen_1dim_rel_pos++;
-        calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
-        break;
-    case KEY_HOME:
-    case WIN64_KEY_HOME:
-        while (gap_buffer_cursor_1dim_position > 0 &&
-               gap_buffer->char_buffer[gap_buffer_cursor_1dim_position - 1] != '\n') {
+            break;
+        case KEY_CTRL_S:
+            if (strlen(file_name) == 0 && strlen(file_extension) == 0) {
+                werase(message_window);
+                waddstr(message_window, "Type filename.extension");
+                wrefresh(message_window);
+                char input_char;
+                int position = 0;
+                do {
+                    input_char = getch();
+                    if (input_char != '\n') {
+                        if (input_char == KEY_BACKSPACE || input_char == WIN64_KEY_BACKSPACE) {
+                            delete_char(filename_buffer, position);
+                            position--;
+                        }
+                        insert_char(filename_buffer, input_char, position++);
+                        werase(message_window);
+                        waddstr(message_window, filename_buffer->char_buffer);
+                        wrefresh(message_window);
+                    }
+                } while (input_char != '\n');
+                if (strpbrk(filename_buffer->char_buffer, ".") != NULL) {
+                    strcpy(file_extension, strpbrk(filename_buffer->char_buffer, ".")); // get file extension
+                    strcpy(file_name, strtok(filename_buffer->char_buffer, ".")); // get file name
+                }
+                else {
+                    strcpy(file_name, filename_buffer->char_buffer);
+                    strcpy(file_extension, "\0");
+                }
+            }
+            is_saved = 1;
+            if (is_recently_opened != 0) {is_recently_opened = 0;}
+            save_to_file(gap_buffer, file_name, file_extension);
+            werase(message_window);
+            draw_save_complete_message_bar(message_window);
+            wrefresh(message_window);
+            break;
+        case KEY_CTRL_F:
+            char* status = (char*)malloc(COLS * sizeof(char));
+            snprintf(status, COLS, "Enter word, %*s <-Prev     Next->",COLS-31,"");
+            while(1) {
+                start_color();
+                init_pair(1, COLOR_BLACK, COLOR_WHITE);
+                wattron(status_window, COLOR_PAIR(1));
+                werase(status_window);
+                mvwprintw(status_window, 0, 0, "%s", status);
+                wattroff(status_window, COLOR_PAIR(1));
+                wrefresh(status_window);
+            }
+            break;
+        case KEY_UP:
+            break;
+        case KEY_DOWN:
+            break;
+        case KEY_LEFT:
             gap_buffer_cursor_1dim_position--;
             screen_1dim_rel_pos--;
-        }
-        break;
+            calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
+            break;
+        case KEY_RIGHT:
+            gap_buffer_cursor_1dim_position++;
+            screen_1dim_rel_pos++;
+            calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
+            break;
+        case KEY_HOME:
+        case WIN64_KEY_HOME:
+            while (gap_buffer_cursor_1dim_position > 0 &&
+                   gap_buffer->char_buffer[gap_buffer_cursor_1dim_position - 1] != '\n') {
+                gap_buffer_cursor_1dim_position--;
+                screen_1dim_rel_pos--;
+            }
+            break;
 
-    case WIN64_KEY_END:
+        case WIN64_KEY_END:
         case KEY_END:
-        while (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] != '\n' &&
-               gap_buffer_cursor_1dim_position < gap_buffer->gap_start + gap_buffer->size) {
-            gap_buffer_cursor_1dim_position++;
-            screen_1dim_rel_pos++;
-               }
+            while (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] != '\n' && gap_buffer_cursor_1dim_position < gap_buffer->size) {
+                gap_buffer_cursor_1dim_position++;
+                screen_1dim_rel_pos++;
+            }
 
-        if (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] == '\n') {
-            gap_buffer_cursor_1dim_position++;
-            screen_1dim_rel_pos++;
-        } else if (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] == '\0') {
-            gap_buffer_cursor_1dim_position++;
-            screen_1dim_rel_pos++;
-        }
+            if (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] == '\n') {
+                gap_buffer_cursor_1dim_position++;
+                screen_1dim_rel_pos++;
+            } else if (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] == '\0') {
+                gap_buffer_cursor_1dim_position++;
+                screen_1dim_rel_pos++;
+            }
 
-        break;
-
-    case KEY_NPAGE:
-    case WIN64_KEY_PAGE_DOWN:
-        break;
-    case KEY_PPAGE:
-    case WIN64_KEY_PAGE_UP:
-
-        break;
-    case MAC_BACKSPACE:
-    case KEY_BACKSPACE:
-    case WIN64_KEY_BACKSPACE:
-        if (gap_buffer_cursor_1dim_position > 0) {
-            delete_char(gap_buffer, gap_buffer_cursor_1dim_position);
-            gap_buffer_cursor_1dim_position--;
-            screen_1dim_rel_pos--;
-            if (is_recently_opened != 0) {is_recently_opened = 0;}
             break;
-        } else {
-            gap_buffer_cursor_1dim_position = 0;
-            screen_1dim_rel_pos = 0;
-            if (is_recently_opened != 0) {is_recently_opened = 0;}
-            break;
-        }
 
-    default:
-        if (is_recently_opened != 0) {is_recently_opened = 0;}
-        is_saved = 0;
-        insert_char(gap_buffer, ch, gap_buffer_cursor_1dim_position);
-        gap_buffer_cursor_1dim_position++;
-        screen_1dim_rel_pos++;
-        calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
-        break;
+        case KEY_NPAGE:
+        case WIN64_KEY_PAGE_DOWN:
+            break;
+        case KEY_PPAGE:
+        case WIN64_KEY_PAGE_UP:
+
+            break;
+        case MAC_BACKSPACE:
+        case KEY_BACKSPACE:
+        case WIN64_KEY_BACKSPACE:
+            if (gap_buffer_cursor_1dim_position > 0) {
+                delete_char(gap_buffer, gap_buffer_cursor_1dim_position);
+                gap_buffer_cursor_1dim_position--;
+                screen_1dim_rel_pos--;
+                if (is_recently_opened != 0) {is_recently_opened = 0;}
+                break;
+            } else {
+                gap_buffer_cursor_1dim_position = 0;
+                screen_1dim_rel_pos = 0;
+                if (is_recently_opened != 0) {is_recently_opened = 0;}
+                break;
+            }
+
+        default:
+            if (is_recently_opened != 0) {is_recently_opened = 0;}
+            is_saved = 0;
+            insert_char(gap_buffer, ch, gap_buffer_cursor_1dim_position);
+            gap_buffer_cursor_1dim_position++;
+            screen_1dim_rel_pos++;
+            calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
+            break;
     }
 }
 
