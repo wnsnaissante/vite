@@ -1,5 +1,7 @@
 #include "terminal.h"
 
+#include <stdint.h>
+
 void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer, int base_pos) {
     werase(text_window);
 
@@ -8,10 +10,10 @@ void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer, int base_pos) {
     int line = 0, col = 0;
 
     for (int i = base_pos; i < gap_buffer->size && line < max_lines; i++) {
-        if (i >= gap_buffer->gap_start && i <= gap_buffer->gap_end) {
+        if (i >= gap_buffer->gap_start && i < gap_buffer->gap_end) {
             continue;
         }
-
+        if (gap_buffer->char_buffer[i] == '\0') { continue; }
         waddch(text_window, gap_buffer->char_buffer[i]);
         col++;
         if (col >= max_cols) {
@@ -160,4 +162,15 @@ void calculate_screen_1dim_pos(GapBuffer* gap_buffer, int base_1dim_pos, int crn
     }
 
     *calculated_screen_cursor_1dim_pos = total_cols;
+}
+
+void draw_find_status_bar(WINDOW* status_window) {
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    wattron(status_window, COLOR_PAIR(1));
+}
+
+
+void find_word_position(GapBuffer* gap_buffer, GapBuffer* word_buffer, int* gap_buffer_cursor_position, WINDOW* message_window, WINDOW* status_window) {
+
 }
