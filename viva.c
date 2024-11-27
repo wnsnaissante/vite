@@ -44,6 +44,7 @@ static int gap_buffer_cursor_1dim_position = 0;
 static int calculated_screen_1dim_pos = 0;
 static int scr_x_pos_2dim = 0;
 static int scr_y_pos_2dim = 0;
+static char* search_base_position;
 
 static int total_lines = 0;
 
@@ -118,7 +119,7 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
             wrefresh(message_window);
             break;
         case KEY_CTRL_F:
-            char* search_base_position;
+            search_base_position = 0;
             uint_fast16_t word_count = 0;
             uint_fast8_t position = 0;
             werase(status_window);
