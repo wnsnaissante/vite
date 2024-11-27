@@ -10,6 +10,7 @@ Known Bug
 6. Can't handle well big size file, Test on 200mb file :(
 7. Print garbage character
 8. MOTD screen doesn't print when program started.
+9. if insert character after gap moves to left, total lines doesn't match
 ---
 !TODO
 1. Fix Memory leaks, overhead
