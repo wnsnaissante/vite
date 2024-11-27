@@ -120,7 +120,6 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
             break;
         case KEY_CTRL_F:
             search_base_position = 0;
-            uint_fast16_t word_count = 0;
             uint_fast8_t position = 0;
             werase(status_window);
             draw_find_default_status_bar(status_window);
@@ -133,7 +132,10 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
                     position--;
                 } else if (ch == '\n') {
                     break;
-                } else {
+                } else if (ch == 27) {
+                    return;
+                }
+                else {
                     insert_char(word_buffer, ch, position++);
                 }
                 waddch(message_window, ch);
@@ -146,6 +148,8 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
             werase(message_window);
             draw_find_result_message(message_window, word_buffer, 0,0);
             wrefresh(message_window);
+
+            refresh();
 
             size_t word_length = 0;
             for(int i = 0; i < word_buffer->size; i++) {
@@ -162,10 +166,7 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
                 wrefresh(message_window);
                 free(word);
             }else {
-                word_count++;
                 while (1) {
-                    werase(message_window);
-                    wrefresh(message_window);
                     char ch = getch();
                     if (ch == KEY_RIGHT) {
 

@@ -177,7 +177,7 @@ void draw_find_default_status_bar(WINDOW* status_window) {
 }
 
 void draw_find_info_status_bar(WINDOW* status_window) {
-    char* temp = "Press <- & -> to move";
+    char* temp = "Press <- & -> to move | Press Enter to return";
     char* status = (char*)malloc(COLS * sizeof(char));
     snprintf(status, COLS,"%s %*s",temp,COLS-strlen(temp),"");
     start_color();
