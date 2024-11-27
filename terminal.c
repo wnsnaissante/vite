@@ -1,25 +1,26 @@
 #include "terminal.h"
 
 void draw_text_area(WINDOW* text_window, GapBuffer* gap_buffer, int base_pos) {
-    int start_pos = base_pos;
-    int end_pos = base_pos + ((LINES - 2) * COLS);
+    werase(text_window);
 
-    if (start_pos < gap_buffer->gap_start) {
-        int output_len = gap_buffer->gap_start - start_pos;
-        if (output_len > 0) {
-            waddnstr(text_window, gap_buffer->char_buffer + start_pos, output_len);
-        }
-        start_pos = gap_buffer->gap_start;
-    }
+    int max_lines = LINES - 2;
+    int max_cols = COLS;
+    int line = 0, col = 0;
 
-    if (end_pos > gap_buffer->gap_end) {
-        int output_len = end_pos - gap_buffer->gap_end - 1;
-        if (output_len > 0) {
-            waddnstr(text_window, gap_buffer->char_buffer + gap_buffer->gap_end + 1, output_len);
+    for (int i = base_pos; i < gap_buffer->size && line < max_lines; i++) {
+        if (i >= gap_buffer->gap_start && i <= gap_buffer->gap_end) {
+            continue;
+        }
+
+        waddch(text_window, gap_buffer->char_buffer[i]);
+        col++;
+        if (col >= max_cols) {
+            col = 0;
+            line++;
         }
     }
+    wrefresh(text_window);
 }
-
 
 void draw_status_bar(int width, char* file_name, char* file_extension, int current_line, int total_lines, WINDOW* status_window) {
     start_color();
@@ -150,8 +151,7 @@ void calculate_screen_1dim_pos(GapBuffer* gap_buffer, int base_1dim_pos, int crn
         }
     }
 
-    if (current_line_chars > 0) {
-
+    if (current_line_chars >= 0) {
         if (current_line_chars >= COLS) {
             total_cols += COLS;
         } else {
