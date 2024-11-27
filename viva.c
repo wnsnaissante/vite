@@ -111,11 +111,12 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
             wrefresh(message_window);
             break;
         case KEY_CTRL_F:
+            char* search_base_position;
+            uint_fast16_t word_count = 0;
             uint_fast8_t position = 0;
             werase(status_window);
             draw_find_default_status_bar(status_window);
             wrefresh(status_window);
-
             werase(message_window);
             while(1) {
                 char ch = getch();
@@ -137,10 +138,37 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
             werase(message_window);
             draw_find_result_message(message_window, word_buffer, 0,0);
             wrefresh(message_window);
-        while (1) {
 
-        }
-            break;
+            size_t word_length = 0;
+            for(int i = 0; i < word_buffer->size; i++) {
+                if(word_buffer->char_buffer[i] != '\0') {
+                    word_length++;
+                }
+            }
+            char* word = (char*)calloc(word_length, sizeof(char));
+            strncpy(word, word_buffer->char_buffer, word_length);
+            search_base_position = strstr(gap_buffer->char_buffer, word);
+            if (search_base_position == 0) {
+                werase(message_window);
+                mvwaddstr(message_window, 0, 0, "Not found");
+                wrefresh(message_window);
+                free(word);
+            }else {
+                word_count++;
+                while (1) {
+                    werase(message_window);
+                    wrefresh(message_window);
+                    char ch = getch();
+                    if (ch == KEY_RIGHT) {
+
+                    } else if (ch == KEY_LEFT) {
+
+                    } else if (ch ==KEY_ENTER || ch == '\n') {
+                        free(word);
+                        break;
+                    }
+                }
+            }
         case KEY_UP:
             break;
         case KEY_DOWN:
@@ -163,7 +191,6 @@ void handle_key_(WINDOW* status_window, WINDOW* message_window, GapBuffer* gap_b
                 screen_1dim_rel_pos--;
             }
             break;
-
         case WIN64_KEY_END:
         case KEY_END:
             while (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] != '\n' && gap_buffer_cursor_1dim_position < gap_buffer->size) {
@@ -286,12 +313,8 @@ int main(int argc, char* argv[]) {
         scr_y_pos_2dim = calculated_screen_1dim_pos / COLS;
         scr_x_pos_2dim = calculated_screen_1dim_pos % COLS;
         move(scr_y_pos_2dim, scr_x_pos_2dim);
-        draw_status_bar(COLS, file_name, file_extension, base_1dim_pos, gap_buffer_cursor_1dim_position, status_window);
-        //draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
-
+        draw_status_bar(COLS, file_name, file_extension, scr_y_pos_2dim, get_total_lines(gap_buffer), status_window);
         draw_text_area(text_window, gap_buffer, base_1dim_pos);
         refresh_screen(text_window, status_window, message_window);
-
         }
-
 }
