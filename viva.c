@@ -24,11 +24,13 @@
 #define WIN64_KEY_HOME 449
 #define WIN64_KEY_END 455
 #define WIN64_KEY_BACKSPACE 8
-#define WIN64_KEY_CTRL_Q 17
-#define WIN64_KEY_CTRL_S 19
-#define WIN64_KEY_CTRL_F 6
+#define KEY_CTRL_Q 17
+#define KEY_CTRL_S 19
+#define KEY_CTRL_F 6
 #define WIN64_KEY_PAGE_UP 451
 #define WIN64_KEY_PAGE_DOWN 457
+#define MAC_BACKSPACE 127
+#define MAC_CTRL_F 6
 
 #include "terminal.h"
 #include "gap_buffer.h"
@@ -59,7 +61,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
     refresh();
     int ch = getch();
     switch (ch) {
-    case WIN64_KEY_CTRL_Q:
+    case KEY_CTRL_Q:
         if (strlen(gap_buffer->char_buffer) == 0 || is_saved == 1 || is_recently_opened == 1) {
             exit(0);
             break;
@@ -79,7 +81,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
             }
         }
         break;
-    case WIN64_KEY_CTRL_S:
+    case KEY_CTRL_S:
         if (strlen(file_name) == 0 && strlen(file_extension) == 0) {
             werase(message_window);
             waddstr(message_window, "Type filename.extension");
@@ -115,7 +117,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
         draw_save_complete_message_bar(message_window);
         wrefresh(message_window);
         break;
-    case WIN64_KEY_CTRL_F:
+    case KEY_CTRL_F:
         break;
     case KEY_UP:
         break;
@@ -192,6 +194,11 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
 }
 
 int main(int argc, char* argv[]) {
+
+    #if defined(__APPLE__) || defined(__linux__)
+        system("stty -ixon");
+    #endif
+
     initscr();
     cbreak();
     noecho();
