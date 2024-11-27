@@ -129,35 +129,35 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
     case KEY_RIGHT:
         gap_buffer_cursor_1dim_position++;
         screen_1dim_rel_pos++;
-
+        calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
         break;
     case KEY_HOME:
     case WIN64_KEY_HOME:
-        while (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] != '\n') {
-            if (gap_buffer_cursor_1dim_position<=0) {
-                gap_buffer_cursor_1dim_position = -1;
-                break;
-            }
+        while (gap_buffer_cursor_1dim_position > 0 &&
+               gap_buffer->char_buffer[gap_buffer_cursor_1dim_position - 1] != '\n') {
             gap_buffer_cursor_1dim_position--;
             screen_1dim_rel_pos--;
         }
-        gap_buffer_cursor_1dim_position++;
-        screen_1dim_rel_pos++;
-
         break;
+
     case WIN64_KEY_END:
-    case KEY_END:
-        while (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] != '\n'&&
-           gap_buffer_cursor_1dim_position < gap_buffer->gap_start + gap_buffer->size) {
+        case KEY_END:
+        while (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] != '\n' &&
+               gap_buffer_cursor_1dim_position < gap_buffer->gap_start + gap_buffer->size) {
             gap_buffer_cursor_1dim_position++;
             screen_1dim_rel_pos++;
-        }
+               }
+
         if (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] == '\n') {
             gap_buffer_cursor_1dim_position++;
             screen_1dim_rel_pos++;
+        } else if (gap_buffer->char_buffer[gap_buffer_cursor_1dim_position] == '\0') {
+            gap_buffer_cursor_1dim_position++;
+            screen_1dim_rel_pos++;
         }
 
         break;
+
     case KEY_NPAGE:
     case WIN64_KEY_PAGE_DOWN:
         break;
@@ -186,6 +186,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
         insert_char(gap_buffer, ch, gap_buffer_cursor_1dim_position);
         gap_buffer_cursor_1dim_position++;
         screen_1dim_rel_pos++;
+        calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
         break;
     }
 }
@@ -232,10 +233,30 @@ int main(int argc, char* argv[]) {
         werase(text_window);
         handle_key_(text_window, status_window, message_window, gap_buffer);
         calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
+        if(gap_buffer_cursor_1dim_position < base_1dim_pos) {
+            base_1dim_pos = 0;
+            screen_1dim_rel_pos = gap_buffer_cursor_1dim_position - base_1dim_pos;
+            calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
+            scr_y_pos_2dim = calculated_screen_1dim_pos / COLS;
+            scr_x_pos_2dim = calculated_screen_1dim_pos % COLS;
+            move(scr_y_pos_2dim, scr_x_pos_2dim);
+            werase(text_window);
+            refresh();
+        }
+        if (calculated_screen_1dim_pos >= (COLS*(LINES-2))) {
+            base_1dim_pos = gap_buffer_cursor_1dim_position - 1;
+            screen_1dim_rel_pos = gap_buffer_cursor_1dim_position - base_1dim_pos;
+            calculate_screen_1dim_pos(gap_buffer, base_1dim_pos, screen_1dim_rel_pos, &calculated_screen_1dim_pos);
+            scr_y_pos_2dim = calculated_screen_1dim_pos / COLS;
+            scr_x_pos_2dim = calculated_screen_1dim_pos % COLS;
+            move(scr_y_pos_2dim, scr_x_pos_2dim);
+            werase(text_window);
+            refresh();
+        }else
         scr_y_pos_2dim = calculated_screen_1dim_pos / COLS;
         scr_x_pos_2dim = calculated_screen_1dim_pos % COLS;
         move(scr_y_pos_2dim, scr_x_pos_2dim);
-        draw_status_bar(COLS, file_name, file_extension, scr_y_pos_2dim, scr_x_pos_2dim, status_window);
+        draw_status_bar(COLS, file_name, file_extension, base_1dim_pos, gap_buffer_cursor_1dim_position, status_window);
         //draw_status_bar(COLS, file_name, file_extension, scr_csr_x, scr_csr_y, status_window);
 
         draw_text_area(text_window, gap_buffer, base_1dim_pos);
