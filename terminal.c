@@ -164,13 +164,46 @@ void calculate_screen_1dim_pos(GapBuffer* gap_buffer, int base_1dim_pos, int crn
     *calculated_screen_cursor_1dim_pos = total_cols;
 }
 
-void draw_find_status_bar(WINDOW* status_window) {
+void draw_find_default_status_bar(WINDOW* status_window) {
+    char* temp = "Type word for search, if done press enter to start search";
+    char* status = (char*)malloc(COLS * sizeof(char));
+    snprintf(status, COLS,"%s %*s",temp,COLS-strlen(temp),"");
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     wattron(status_window, COLOR_PAIR(1));
+    mvwprintw(status_window, 0, 0, status);
+    wattroff(status_window, COLOR_PAIR(1));
+    free(status);
 }
 
-
-void find_word_position(GapBuffer* gap_buffer, GapBuffer* word_buffer, int* gap_buffer_cursor_position, WINDOW* message_window, WINDOW* status_window) {
-
+void draw_find_info_status_bar(WINDOW* status_window) {
+    char* temp = "Press <- & -> to move";
+    char* status = (char*)malloc(COLS * sizeof(char));
+    snprintf(status, COLS,"%s %*s",temp,COLS-strlen(temp),"");
+    start_color();
+    init_pair(1, COLOR_BLACK, COLOR_WHITE);
+    wattron(status_window, COLOR_PAIR(1));
+    mvwprintw(status_window, 0, 0, status);
+    wattroff(status_window, COLOR_PAIR(1));
+    free(status);
 }
+
+void draw_find_result_message(WINDOW* message_window, GapBuffer* word_buffer, int crnt_position, int results) {
+    char* message = (char*)malloc(COLS * sizeof(char));
+    size_t word_length = 0;
+    for(int i = 0; i < word_buffer->size; i++) {
+        if(word_buffer->char_buffer[i] != '\0') {
+            word_length++;
+        }
+    }
+    char* word = (char*)calloc(word_length, sizeof(char));
+    strncpy(word, word_buffer->char_buffer, word_length);
+    snprintf(message, COLS,"Search:%s %*s %d / %d",word, COLS-strlen(word)-25, "", word_length, results);
+    mvwprintw(message_window, 0, 0, message);
+    free(message);
+    free(word);
+}
+
+// void find_word_position(GapBuffer* gap_buffer, GapBuffer* word_buffer, int* gap_buffer_cursor_position) {
+//
+// }
