@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall -Wextra -O3 -march=native -funroll-loops -fomit-frame-pointer
 OBJS = gap_buffer.o terminal.o viva.o
-TARGET = viva.out
+TARGET = viva
 
 # Detect platform
 ifeq ($(OS),Windows_NT)
