@@ -167,6 +167,7 @@ void handle_key_(WINDOW* text_window, WINDOW* status_window, WINDOW* message_win
     case WIN64_KEY_PAGE_UP:
 
         break;
+    case MAC_BACKSPACE:
     case KEY_BACKSPACE:
     case WIN64_KEY_BACKSPACE:
         if (gap_buffer_cursor_1dim_position > 0) {
