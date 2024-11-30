@@ -17,8 +17,8 @@ Known Bug
 2. Fix malfunctions
 3. Optimization
 4. Implement Search feature
-5. Fix MOTD screen
-6. Up, down Arrow key implement
+5. Implement Up, down Arrow key
+6. Fix,Implement MOTD(Init) screen
 7. Fix Home, End key malfunction
 ---  
 Project Initiation date : 2024/09/02
