@@ -6,7 +6,7 @@ TARGET = viva
 # Detect platform
 ifeq ($(OS),Windows_NT)
     LDFLAGS = -L./lib -lpdcurses -lm
-    INCLUDES = -I./include -L./lib
+    INCLUDES = -L./lib -I./include
 else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
