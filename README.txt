@@ -1,6 +1,9 @@
 2024, Sophomore 2nd semester Advanced Data Structure Project
 20233100 김준영
 ---
+Vite is a lightweight text editor developed as part of an advanced data structure project.
+it leverages a gap buffer structure for efficient text manipulation.
+---
 Known Bug
 1. Home, End key malfunction : Can outbound gap buffer or might not be in the exact location
 2. Gap buffer Cursor <-> Screen Cursor position doesn't match in some case
@@ -9,8 +12,11 @@ Known Bug
 5. When open files and insert any character at first, first origin character can be changed
 6. Can't handle well big size file, Test on 200mb file :(
 7. Print garbage character
-8. MOTD screen doesn't print when program started.
+8. MOTD(Init) screen doesn't print when program started. so i abandoned it :)
 9. if insert character after gap moves to left, total lines doesn't match
+10. Can't save the file when entering the filename, as issues occur with deletion or cursor movement,
+preventing proper handling and saving of the file.
+11. Text area doesn't appear in some case.
 ---
 !TODO
 1. Fix Memory leaks, overhead
